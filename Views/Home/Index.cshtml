@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="/js/qRScanner.js"></script>
+</head>
+<body>
+    <div>
+        <button id="checkInButton" class="btn btn-primary">Check-In</button>
+        <button id="registrationsButton" class="btn btn-primary">Registrations</button>
+    </div>
+
+    <script>
+        document.getElementById("checkInButton").addEventListener("click", function () {
+            window.location.href = "@Url.Action("CheckIn", "Home")";
+        });
+    </script>
+</body>
+</html>
