@@ -1,0 +1,98 @@
+﻿@model SettingsFormModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="/js/qRScanner.js"></script>
+</head>
+<body>
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label asp-for="CheckInNumber">CheckInNumber</label>
+            <input asp-for="CheckInNumber" class="form-control">
+            <span asp-validation-for="CheckInNumber" class="small text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TiToToken">Token</label>
+            <input asp-for="TiToToken" class="form-control">
+            <span asp-validation-for="TiToToken" class="small text-danger"></span>
+        </div>
+
+        <div>
+            <input type="hidden" asp-for="SelectedCameraId" id="selectedCameraId">
+            <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">           
+        </div>
+
+        <h1>Select a Camera:</h1>
+        <select asp-for="SelectedCameraId" id="cameraSelect" class="form-control">      
+            <option value="" selected>Select Camera</option>
+        </select>
+        <button type="button" onclick="startCamera()">Test Camera</button>
+        <span asp-validation-for="SelectedCameraId" class="small text-danger"></span>
+        <video id="cameraPreview" width="120" height="120" autoplay></video>
+        <button id="save" type="submit">Save</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            populateCameraList(); // Function to populate the camera list initially
+
+            document.getElementById("cameraSelect").addEventListener("change", function () {
+                var cameraSelect = document.getElementById("cameraSelect");
+                var selectedCameraId = cameraSelect.value;
+                var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
+
+                document.getElementById("selectedCameraId").value = selectedCameraId;
+                document.getElementById("selectedCameraLabel").value = selectedCameraLabel;
+            });
+        });
+
+
+        function populateCameraList() {
+            var select = document.getElementById("cameraSelect");
+
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    devices.forEach(device => {
+                        if (device.kind === "videoinput") {
+                            var option = document.createElement('option');
+                            option.text = device.label || 'Camera ' + (select.length + 1);
+                            option.value = device.deviceId;
+                            select.appendChild(option);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error getting media devices:', error);
+                });
+        }
+
+        // Function to start the selected camera
+        function startCamera() {
+            var cameraSelect = document.getElementById("cameraSelect");
+            var selectedCameraId = cameraSelect.value;
+            var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
+            var constraints = { video: { deviceId: selectedCameraId } };
+
+            // document.getElementById("selectedCameraId").value = selectedCameraId;
+            // document.getElementById("selectedCameraLabel").value = selectedCameraLabel;
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    var video = document.getElementById("cameraPreview");
+                    video.srcObject = stream;
+                })
+                .catch(error => {
+                    console.error('Error accessing camera:', error);
+                });
+        }
+
+        // Populate the camera list when the page loads
+        // populateCameraList();
+    </script>
+</body>
+</html>

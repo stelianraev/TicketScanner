@@ -32,8 +32,8 @@ namespace CheckIN.Controllers
             string qrCodeData = data.QRCodeData;
             //var tickets = await _tiToService.GetTicket(qrCodeData);
             var tickets = await _tiToService.GetTickets(qrCodeData);
-
-            return View(tickets);
+           
+            return Ok();
         }
 
         public IActionResult Registrations()
