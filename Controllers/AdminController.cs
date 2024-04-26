@@ -1,7 +1,5 @@
 ﻿using CheckIN.Models;
-using CheckIN.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CheckIN.Controllers
 {
