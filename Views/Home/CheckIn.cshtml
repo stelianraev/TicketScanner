@@ -15,6 +15,12 @@
             scan();
         });
 
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
         async function scan() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
@@ -26,10 +32,13 @@
 
             try {
                 video.style.display = 'block';
-                canvas.style.display = 'block';
+                //canvas.style.display = 'block';
+
+                //get camera from coockies setted in Admin Controller
+                var constraints = { video: { exact: getCookie("SelectedCameraId") } };
 
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: "user" } // Use the front camera
+                    video: { constraints } // Use the front camera
                 });
 
                 video.srcObject = stream;
@@ -66,22 +75,22 @@
 
         function sendDataToServer(data) {
             // Send data to server using Fetch API
-            fetch('/Home/ProcessQRData', {
+            fetch('/Ticket/Ticket', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ qrCodeData: data })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                // Handle successful response here
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    // Handle successful response here
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
         }
     </script>
 </body>

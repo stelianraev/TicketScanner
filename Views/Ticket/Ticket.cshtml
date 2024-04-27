@@ -1,0 +1,38 @@
+﻿@* @model TicketViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket</title>
+</head>
+<body>
+    <div class="nav-item">
+        <a class="text-monospace">@Model.FirstName</a>
+    </div>
+    <br />
+    <div class="nav-item">
+        <a class="text-monospace">@Model.LastName</a>
+    </div>
+    <br />
+    <div class="nav-item">
+        <a class="text-monospace">@Model.CompanyName</a>
+    </div>
+    <br />
+
+    <ol>
+        @foreach (var tag in Model.Tags)
+        {
+            <li>@tag</li>
+        }
+    </ol>
+
+    <br />
+</body>
+</html>
+ *@
+
+ <div>
+     There is a result
+ </div>

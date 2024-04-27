@@ -17,9 +17,9 @@ namespace CheckIN.Controllers
             var cookies = this.Request.Cookies;
             var settingsModel = new SettingsFormModel();
 
-            if (cookies.ContainsKey("CheckInNumber"))
+            if (cookies.ContainsKey("CheckInListId"))
             {
-                settingsModel.CheckInNumber = cookies["CheckInNumber"]!;
+                settingsModel.CheckInListId = cookies["CheckInListId"]!;
             }
             if (cookies.ContainsKey("TiToToken"))
             {
@@ -40,9 +40,9 @@ namespace CheckIN.Controllers
         [HttpPost]
         public IActionResult Settings(SettingsFormModel settingsModel)
         {
-            if (settingsModel.CheckInNumber == null)
+            if (settingsModel.CheckInListId == null)
             {
-                this.ModelState.AddModelError("CheckInNumber", "Please fill valid CheckInNumber from ti.to");
+                this.ModelState.AddModelError("CheckInListId", "Please fill valid CheckInListId from ti.to");
             }
             if (settingsModel.TiToToken == null)
             {
@@ -58,10 +58,10 @@ namespace CheckIN.Controllers
                 return View(settingsModel);
             }
 
-            this.Response.Cookies.Append("CheckInNumber", settingsModel.CheckInNumber!);
-            this.Response.Cookies.Append("TiToToken", settingsModel.TiToToken!);
-            this.Response.Cookies.Append("SelectedCameraId", settingsModel.SelectedCameraId!);
-            this.Response.Cookies.Append("SelectedCameraLabel", settingsModel.SelectedCameraLabel!);
+            this.Response.Cookies.Append("CheckInListId", settingsModel.CheckInListId!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0)});
+            this.Response.Cookies.Append("TiToToken", settingsModel.TiToToken!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+            this.Response.Cookies.Append("SelectedCameraId", settingsModel.SelectedCameraId!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+            this.Response.Cookies.Append("SelectedCameraLabel", settingsModel.SelectedCameraLabel!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
 
             return RedirectToAction("Index", "Home");
         }

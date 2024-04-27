@@ -4,18 +4,20 @@ namespace CheckIN.Models
 {
     public class SettingsFormModel
     {
-        [Url(ErrorMessage = "Please enter a valid token from ti.to")]
+        [Required(ErrorMessage = "Please enter a valid token from ti.to")]
         [Display(Name = "Token")]
         public string TiToToken { get; set; }
 
-        [Url(ErrorMessage = "Please enter a valid CheckInNumber")]
+        [Required(ErrorMessage = "Please enter a valid CheckInNumber")]
         [Display(Name = "CheckInNumber")]
-        public string CheckInNumber { get; set; }
+        public string CheckInListId { get; set; }
 
-        [Url(ErrorMessage = "Please select a camera.")]
+        [Required(ErrorMessage = "Please select a camera.")]
         [Display(Name = "Camera")]
         public string SelectedCameraId { get; set; }
         public string SelectedCameraLabel { get; set; }
+
+        public string SelectedPrinterId { get; set; } 
 
     }
 }
