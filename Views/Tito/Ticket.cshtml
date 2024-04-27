@@ -1,4 +1,4 @@
-﻿@* @model TicketViewModel
+﻿@model TicketViewModel
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,30 +9,22 @@
 </head>
 <body>
     <div class="nav-item">
-        <a class="text-monospace">@Model.FirstName</a>
+        <a class="text-monospace">First Name: @Model.FirstName</a>
     </div>
     <br />
     <div class="nav-item">
-        <a class="text-monospace">@Model.LastName</a>
+        <a class="text-monospace">Last Name: @Model.LastName</a>
     </div>
     <br />
     <div class="nav-item">
-        <a class="text-monospace">@Model.CompanyName</a>
+        <a class="text-monospace">Company: @Model.CompanyName</a>
+    </div>
+    <br />
+    <div class="nav-item">
+        <a class="text-monospace">Tag: @Model.Tags</a>
     </div>
     <br />
 
-    <ol>
-        @foreach (var tag in Model.Tags)
-        {
-            <li>@tag</li>
-        }
-    </ol>
-
-    <br />
+    <button id="print">Print</button>
 </body>
 </html>
- *@
-
- <div>
-     There is a result
- </div>

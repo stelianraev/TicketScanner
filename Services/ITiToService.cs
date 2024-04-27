@@ -6,6 +6,6 @@ namespace CheckIN.Services
     {
         public Task<HttpResponseMessage> GetTickets(string checkListId);
 
-        public Task<HttpResponseMessage> GetTicket(string titoToken, string checkListId, string ticketId);
+        public Task<string> GetTicket(string titoToken, string checkListId, string ticketId);
     }
 }

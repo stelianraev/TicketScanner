@@ -75,7 +75,7 @@
 
         function sendDataToServer(data) {
             // Send data to server using Fetch API
-            fetch('/Ticket/Ticket', {
+            fetch('/Tito/Ticket', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -87,6 +87,7 @@
                         throw new Error('Network response was not ok');
                     }
                     // Handle successful response here
+                    window.location.href = response.url;
                 })
                 .catch(error => {
                     console.error('There was a problem with the fetch operation:', error);

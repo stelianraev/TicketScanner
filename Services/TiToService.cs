@@ -11,7 +11,7 @@ namespace CheckIN.Services
         {
             _tiToConfiguration = titoConfiguration.Value;
         }
-        public async Task<HttpResponseMessage> GetTicket(string titoToken, string checkInListId, string ticketId)
+        public async Task<string> GetTicket(string titoToken, string checkInListId, string ticketId)
         {
             string endpoint = checkInListId + "/tickets/" + ticketId;
             string url = _tiToConfiguration.BaseUrl + endpoint;
@@ -24,8 +24,17 @@ namespace CheckIN.Services
             request.Headers.Add("Accept", "application/json");
             // Send the HTTP request
             var response = await _httpClient.SendAsync(request);
-                        
-            return response;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                //TODO
+                // Log the error or handle it accordingly
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
         }
 
         public async Task<HttpResponseMessage> GetTickets(string checkList)

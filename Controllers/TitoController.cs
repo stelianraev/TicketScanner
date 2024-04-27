@@ -1,25 +1,28 @@
-﻿using CheckIN.Models.ViewModels;
+﻿using CheckIN.Models.TITo;
+using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace CheckIN.Controllers
 {
-    public class TicketController : Controller
+    public class TitoController : Controller
     {
 
         private readonly ILogger<HomeController> _logger;
         private readonly ITiToService _tiToService;
+        private static TicketViewModel transferTicketModel;
 
-        public TicketController(ILogger<HomeController> logger, ITiToService tiToService)
+        public TitoController(ILogger<HomeController> logger, ITiToService tiToService)
         {
             _tiToService = tiToService;
             _logger = logger;
         }
 
-        public IActionResult Ticket(TicketViewModel ticket)
+        [HttpGet]
+        public IActionResult Ticket()
         {
-            return View(ticket);
+            return View(transferTicketModel);
         }
 
         [HttpPost]
@@ -37,22 +40,22 @@ namespace CheckIN.Controllers
             {
                 string qrCodeData = data.QRCodeData;
                 var response = await _tiToService.GetTicket(token, checkListId, qrCodeData);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Log the error or handle it accordingly
-                    return StatusCode((int)response.StatusCode, "Failed to retrieve ticket information.");
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<TicketViewModel>(content);
+                               
+                var result = JsonConvert.DeserializeObject<TitoTicket>(response);
 
                 if (result == null)
                 {
                     return NotFound("Ticket data is null after deserialization.");
                 }
 
-                return this.View();
+                var ticketModel = new TicketViewModel();
+                ticketModel.FirstName = result.FirstName;
+                ticketModel.LastName = result.LastName;
+                ticketModel.CompanyName = result.CompanyName;
+                ticketModel.Tags = result.Tags;
+
+                transferTicketModel = ticketModel;
+                return this.View(transferTicketModel);
             }
             catch (Exception ex)
             {

@@ -1,46 +1,46 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace CheckIN.Models.TITo
 {
     public class TitoTicket
     {
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         public int Id { get; set; }
 
-        [JsonPropertyName("slug")]
+        [JsonProperty("slug")]
         public string Slug { get; set; }
 
-        [JsonPropertyName("first_name")]
+        [JsonProperty("first_name")]
         public string FirstName { get; set; }
 
-        [JsonPropertyName("last_name")]
+        [JsonProperty("last_name")]
         public string LastName { get; set; }
 
-        [JsonPropertyName("email")]
+        [JsonProperty("email")]
         public string Email { get; set; }
 
-        [JsonPropertyName("phone_number")]
-        public int PhoneNumber { get; set; }
+        [JsonProperty("phone_number")]
+        public string PhoneNumber { get; set; }
 
-        [JsonPropertyName("company_name")]
-        public string CompanyNme { get; set; }
+        [JsonProperty("company_name")]
+        public string CompanyName { get; set; }
 
-        [JsonPropertyName("release_title")]
+        [JsonProperty("release_title")]
         public string ReleaseTitle { get; set; }
 
-        [JsonPropertyName("reference")]
+        [JsonProperty("reference")]
         public string Reference { get; set; }
 
-        [JsonPropertyName("registration_reference")]
+        [JsonProperty("registration_reference")]
         public string RegistrationReference { get; set; }
 
-        [JsonPropertyName("tags")]
+        [JsonProperty("tags")]
         public string Tags { get; set; }
 
-        [JsonPropertyName("created_at")]
-        public string CreatedAt { get; set; }
+        [JsonProperty("created_at")]
+        public DateTime CreatedAt { get; set; }
 
-        [JsonPropertyName("updated_at")]
-        public string UpdatedAt { get; set; }
+        [JsonProperty("updated_at")]
+        public DateTime UpdatedAt { get; set; }
     }
 }
