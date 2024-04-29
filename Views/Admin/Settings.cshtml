@@ -63,22 +63,49 @@
         });
 
 
+        // function populateCameraList() {
+        //     var select = document.getElementById("cameraSelect");
+
+        //     navigator.mediaDevices.enumerateDevices()
+        //         .then(devices => {
+        //             devices.forEach(device => {
+        //                 if (device.kind === "videoinput") {
+        //                     var option = document.createElement('option');
+        //                     option.text = device.label || 'Camera ' + (select.length + 1);
+        //                     option.value = device.deviceId;
+        //                     select.appendChild(option);
+        //                 }
+        //             });
+        //         })
+        //         .catch(error => {
+        //             console.error('Error getting media devices:', error);
+        //         });
+        // }
         function populateCameraList() {
             var select = document.getElementById("cameraSelect");
 
-            navigator.mediaDevices.enumerateDevices()
-                .then(devices => {
-                    devices.forEach(device => {
-                        if (device.kind === "videoinput") {
-                            var option = document.createElement('option');
-                            option.text = device.label || 'Camera ' + (select.length + 1);
-                            option.value = device.deviceId;
-                            select.appendChild(option);
-                        }
-                    });
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    navigator.mediaDevices.enumerateDevices()
+                        .then(devices => {
+                            devices.forEach(device => {
+                                if (device.kind === "videoinput") {
+                                    var option = document.createElement('option');
+                                    option.text = device.label || 'Camera ' + (select.length + 1);
+                                    option.value = device.deviceId;
+                                    select.appendChild(option);
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error getting media devices:', error);
+                        })
+                        .finally(() => {
+                            stream.getTracks().forEach(track => track.stop());
+                        });
                 })
                 .catch(error => {
-                    console.error('Error getting media devices:', error);
+                    console.error('Error accessing camera:', error);
                 });
         }
 
