@@ -26,15 +26,15 @@ namespace CheckIN.Controllers
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ProcessQRData([FromBody] QRCodeDataModel data)
-        {
-            string qrCodeData = data.QRCodeData;
-            //var tickets = await _tiToService.GetTicket(qrCodeData);
-            var tickets = await _tiToService.GetTickets(qrCodeData);
+        //[HttpPost]
+        //public async Task<IActionResult> ProcessQRData([FromBody] QRCodeDataModel data)
+        //{
+        //    string qrCodeData = data.QRCodeData;
+        //    var ticket = await _tiToService.GetTicket(qrCodeData);
+        //    //var tickets = await _tiToService.GetTickets(qrCodeData);
            
-            return Ok();
-        }
+        //    return Ok();
+        //}
 
         public IActionResult Registrations()
         {
@@ -43,8 +43,8 @@ namespace CheckIN.Controllers
         }
     }
 
-    public class QRCodeDataModel
-    {
-        public string QRCodeData { get; set; }
-    }
+    //public class QRCodeDataModel
+    //{
+    //    public string QRCodeData { get; set; }
+    //}
 }
