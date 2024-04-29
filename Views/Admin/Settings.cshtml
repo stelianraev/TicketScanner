@@ -127,11 +127,11 @@
         }
 
         async function discoverPrinters() {
+            const printerList = document.getElementById('printerList');
+
             try {
                 // Discover USB printers
                 const usbDevices = await navigator.usb.getDevices();
-                const printerList = document.getElementById('printerList');
-
                 usbDevices.forEach(device => {
                     const listItem = document.createElement('li');
                     listItem.textContent = `USB Printer: ${device.productName}`;
@@ -143,25 +143,63 @@
 
             try {
                 // Discover Bluetooth printers
-                const device = await navigator.bluetooth.requestDevice({
+                const bluetoothDevices = await navigator.bluetooth.requestDevice({
                     // Replace with appropriate filters or leave empty to discover all devices
                 });
 
-                // Connect to the printer
-                const server = await device.gatt.connect();
-
-                // Access printer service and characteristics
-                // Perform further operations as needed
-
-                // Display Bluetooth printer details
-                const printerList = document.getElementById('printerList');
-                const listItem = document.createElement('li');
-                listItem.textContent = `Bluetooth Printer: ${device.name}`;
-                printerList.appendChild(listItem);
+                bluetoothDevices.forEach(device => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Bluetooth Printer: ${device.name}`;
+                    printerList.appendChild(listItem);
+                });
             } catch (error) {
                 console.error('Error discovering Bluetooth printers:', error);
             }
+
+            try {
+                // Discover other types of printers
+                // Implement other discovery methods here
+            } catch (error) {
+                console.error('Error discovering other types of printers:', error);
+            }
         }
+
+        // async function discoverPrinters() {
+        //     try {
+        //         // Discover USB printers
+        //         const usbDevices = await navigator.usb.getDevices();
+        //         const printerList = document.getElementById('printerList');
+
+        //         usbDevices.forEach(device => {
+        //             const listItem = document.createElement('li');
+        //             listItem.textContent = `USB Printer: ${device.productName}`;
+        //             printerList.appendChild(listItem);
+        //         });
+        //     } catch (error) {
+        //         console.error('Error discovering USB printers:', error);
+        //     }
+
+        //     try {
+        //         // Discover Bluetooth printers
+        //         const device = await navigator.bluetooth.requestDevice({
+        //             // Replace with appropriate filters or leave empty to discover all devices
+        //         });
+
+        //         // Connect to the printer
+        //         const server = await device.gatt.connect();
+
+        //         // Access printer service and characteristics
+        //         // Perform further operations as needed
+
+        //         // Display Bluetooth printer details
+        //         const printerList = document.getElementById('printerList');
+        //         const listItem = document.createElement('li');
+        //         listItem.textContent = `Bluetooth Printer: ${device.name}`;
+        //         printerList.appendChild(listItem);
+        //     } catch (error) {
+        //         console.error('Error discovering Bluetooth printers:', error);
+        //     }
+        // }
 
         // Call the function to discover printers when the page loads
         discoverPrinters();
