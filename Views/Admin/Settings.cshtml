@@ -1,0 +1,143 @@
+﻿@model SettingsFormModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="/js/qRScanner.js"></script>
+</head>
+<body>
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label asp-for="CheckInListId">CheckInNumber</label>
+            <input asp-for="CheckInListId" class="form-control">
+            <span asp-validation-for="CheckInListId" class="small text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TiToToken">Token</label>
+            <input asp-for="TiToToken" class="form-control">
+            <span asp-validation-for="TiToToken" class="small text-danger"></span>
+        </div>
+
+        <div>
+            <input type="hidden" asp-for="SelectedCameraId" id="selectedCameraId">
+            <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">           
+        </div>
+
+        <div>
+            <h1>Connected Printers:</h1>
+            <ul id="printerList"></ul>
+
+            <h1>Select a Printer:</h1>
+            <select asp-for="SelectedPrinterId" id="printerList" class="form-control">
+                <option value="" selected>Select Printer</option>
+            </select>
+        </div>
+
+        <h1>Select a Camera:</h1>
+        <select asp-for="SelectedCameraId" id="cameraSelect" class="form-control">      
+            <option value="" selected>Select Camera</option>
+        </select>
+        <button type="button" onclick="startCamera()">Test Camera</button>
+        <span asp-validation-for="SelectedCameraId" class="small text-danger"></span>
+        <video id="cameraPreview" width="120" height="120" autoplay></video>
+        <button id="save" type="submit">Save</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            populateCameraList();
+            discoverPrinters();
+
+            document.getElementById("cameraSelect").addEventListener("change", function () {
+                var cameraSelect = document.getElementById("cameraSelect");
+                var selectedCameraId = cameraSelect.value;
+                var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
+
+                document.getElementById("selectedCameraId").value = selectedCameraId;
+                document.getElementById("selectedCameraLabel").value = selectedCameraLabel;
+            });
+        });
+
+
+        function populateCameraList() {
+            var select = document.getElementById("cameraSelect");
+
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    devices.forEach(device => {
+                        if (device.kind === "videoinput") {
+                            var option = document.createElement('option');
+                            option.text = device.label || 'Camera ' + (select.length + 1);
+                            option.value = device.deviceId;
+                            select.appendChild(option);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error getting media devices:', error);
+                });
+        }
+
+        // Function to start the selected camera
+        function startCamera() {
+            var cameraSelect = document.getElementById("cameraSelect");
+            var selectedCameraId = cameraSelect.value;
+            var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
+            var constraints = { video: { deviceId: selectedCameraId } };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    var video = document.getElementById("cameraPreview");
+                    video.srcObject = stream;
+                })
+                .catch(error => {
+                    console.error('Error accessing camera:', error);
+                });
+        }
+
+        async function discoverPrinters() {
+            try {
+                // Discover USB printers
+                const usbDevices = await navigator.usb.getDevices();
+                const printerList = document.getElementById('printerList');
+
+                usbDevices.forEach(device => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `USB Printer: ${device.productName}`;
+                    printerList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error discovering USB printers:', error);
+            }
+
+            try {
+                // Discover Bluetooth printers
+                const device = await navigator.bluetooth.requestDevice({
+                    // Replace with appropriate filters or leave empty to discover all devices
+                });
+
+                // Connect to the printer
+                const server = await device.gatt.connect();
+
+                // Access printer service and characteristics
+                // Perform further operations as needed
+
+                // Display Bluetooth printer details
+                const printerList = document.getElementById('printerList');
+                const listItem = document.createElement('li');
+                listItem.textContent = `Bluetooth Printer: ${device.name}`;
+                printerList.appendChild(listItem);
+            } catch (error) {
+                console.error('Error discovering Bluetooth printers:', error);
+            }
+        }
+
+        // Call the function to discover printers when the page loads
+        discoverPrinters();
+    </script>
+</body>
+</html>

@@ -41,7 +41,7 @@ namespace CheckIN
                     options.ColorBehavior = LoggerColorBehavior.Enabled;
                 });
             }
-
+             
             builder.Services.Configure<TiToConfiguration>(builder.Configuration.GetSection("Tito"));
 
             builder.Services.AddControllersWithViews();
@@ -54,6 +54,7 @@ namespace CheckIN
         {
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseHsts();
 
             app.UseRouting();
 

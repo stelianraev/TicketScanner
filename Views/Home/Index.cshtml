@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <script src="/js/qRScanner.js"></script>
+    <link rel="stylesheet" href="~/css/style.css" />
+    @* <script src="/js/qRScanner.js"></script> *@
 </head>
 <body>
     <div>
@@ -12,9 +13,17 @@
         <button id="registrationsButton" class="btn btn-primary">Registrations</button>
     </div>
 
+    <div>
+        <button id="settings" class=" btn btn-primery">Settings</button>
+    </div>
+
     <script>
         document.getElementById("checkInButton").addEventListener("click", function () {
             window.location.href = "@Url.Action("CheckIn", "Home")";
+        });
+
+        document.getElementById("settings").addEventListener("click", function () {
+            window.location.href = "@Url.Action("Settings", "Admin")";
         });
     </script>
 </body>
