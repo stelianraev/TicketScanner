@@ -1,5 +1,6 @@
 using CheckIN.Configuration;
 using CheckIN.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Console;
 using System.Reflection;
@@ -44,7 +45,10 @@ namespace CheckIN
              
             builder.Services.Configure<TiToConfiguration>(builder.Configuration.GetSection("Tito"));
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
+            });
             builder.Services.AddHttpClient();
 
             builder.Services.AddSingleton<ITiToService, TiToService>();
