@@ -62,25 +62,6 @@
             });
         });
 
-
-        // function populateCameraList() {
-        //     var select = document.getElementById("cameraSelect");
-
-        //     navigator.mediaDevices.enumerateDevices()
-        //         .then(devices => {
-        //             devices.forEach(device => {
-        //                 if (device.kind === "videoinput") {
-        //                     var option = document.createElement('option');
-        //                     option.text = device.label || 'Camera ' + (select.length + 1);
-        //                     option.value = device.deviceId;
-        //                     select.appendChild(option);
-        //                 }
-        //             });
-        //         })
-        //         .catch(error => {
-        //             console.error('Error getting media devices:', error);
-        //         });
-        // }
         function populateCameraList() {
             var select = document.getElementById("cameraSelect");
 
@@ -131,7 +112,9 @@
 
             try {
                 // Discover USB printers
+                debugger;
                 const usbDevices = await navigator.usb.getDevices();
+                debugger;
                 usbDevices.forEach(device => {
                     const listItem = document.createElement('li');
                     listItem.textContent = `USB Printer: ${device.productName}`;
@@ -141,26 +124,17 @@
                 console.error('Error discovering USB printers:', error);
             }
 
-            try {
-                // Discover Bluetooth printers
-                const bluetoothDevices = await navigator.bluetooth.requestDevice({
-                    // Replace with appropriate filters or leave empty to discover all devices
-                });
+            debugger;
 
-                bluetoothDevices.forEach(device => {
+            try {
+                const devices = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+                devices.forEach(device => {
                     const listItem = document.createElement('li');
                     listItem.textContent = `Bluetooth Printer: ${device.name}`;
                     printerList.appendChild(listItem);
                 });
             } catch (error) {
                 console.error('Error discovering Bluetooth printers:', error);
-            }
-
-            try {
-                // Discover other types of printers
-                // Implement other discovery methods here
-            } catch (error) {
-                console.error('Error discovering other types of printers:', error);
             }
         }
 
