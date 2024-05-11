@@ -24,21 +24,19 @@
 
         <div>
             <input type="hidden" asp-for="SelectedCameraId" id="selectedCameraId">
-            <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">           
+            <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">
         </div>
 
         <div>
-            <h1>Connected Printers:</h1>
-            <ul id="printerList"></ul>
-
             <h1>Select a Printer:</h1>
-            <select asp-for="SelectedPrinterId" id="printerList" class="form-control">
+            <select asp-for="PrinterName" id="printerList" class="form-control">
                 <option value="" selected>Select Printer</option>
             </select>
+            <span asp-validation-for="PrinterName" class="small text-danger"></span>
         </div>
 
         <h1>Select a Camera:</h1>
-        <select asp-for="SelectedCameraId" id="cameraSelect" class="form-control">      
+        <select asp-for="SelectedCameraId" id="cameraSelect" class="form-control">
             <option value="" selected>Select Camera</option>
         </select>
         <button type="button" onclick="startCamera()">Test Camera</button>
@@ -47,19 +45,12 @@
         <button id="save" type="submit">Save</button>
     </form>
 
+    <div id="cameraId"></div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             populateCameraList();
             discoverPrinters();
-
-            document.getElementById("cameraSelect").addEventListener("change", function () {
-                var cameraSelect = document.getElementById("cameraSelect");
-                var selectedCameraId = cameraSelect.value;
-                var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
-
-                document.getElementById("selectedCameraId").value = selectedCameraId;
-                document.getElementById("selectedCameraLabel").value = selectedCameraLabel;
-            });
         });
 
         function populateCameraList() {
@@ -72,7 +63,7 @@
                             devices.forEach(device => {
                                 if (device.kind === "videoinput") {
                                     var option = document.createElement('option');
-                                    option.text = device.label || 'Camera ' + (select.length + 1);
+                                    option.text = device.label + ' Id:' + device.deviceId || 'Camera ' + (select.length + 1)
                                     option.value = device.deviceId;
                                     select.appendChild(option);
                                 }
@@ -90,60 +81,55 @@
                 });
         }
 
-        // Function to start the selected camera
+        // Function to start the selected camera and update SelectedCameraId
         function startCamera() {
             var cameraSelect = document.getElementById("cameraSelect");
             var selectedCameraId = cameraSelect.value;
             var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
             var constraints = { video: { deviceId: selectedCameraId } };
 
+            //test
+            var el = document.getElementById('cameraId');
+            var newEl = document.createElement('span');
+            newEl.textContent = JSON.stringify(constraints);
+            el.appendChild(newEl);
+
             navigator.mediaDevices.getUserMedia(constraints)
                 .then(stream => {
                     var video = document.getElementById("cameraPreview");
                     video.srcObject = stream;
+
+                    // Update SelectedCameraId
+                    document.getElementById("selectedCameraId").value = selectedCameraId;
+                    document.getElementById("selectedCameraLabel").value = selectedCameraLabel;
                 })
                 .catch(error => {
                     console.error('Error accessing camera:', error);
                 });
         }
 
-        async function discoverPrinters() {
-            const printerList = document.getElementById('printerList');
-
-            try {
-                // Discover USB printers
-                debugger;
-                const usbDevices = await navigator.usb.getDevices();
-                debugger;
-                usbDevices.forEach(device => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `USB Printer: ${device.productName}`;
-                    printerList.appendChild(listItem);
-                });
-            } catch (error) {
-                console.error('Error discovering USB printers:', error);
-            }
-
-            debugger;
-
-            try {
-                const devices = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-                devices.forEach(device => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `Bluetooth Printer: ${device.name}`;
-                    printerList.appendChild(listItem);
-                });
-            } catch (error) {
-                console.error('Error discovering Bluetooth printers:', error);
-            }
+        // Discover printers
+        function discoverPrinters() {
+            fetch('/Printer/GetPrinters')
+                .then(response => response.json())
+                .then(printers => {
+                    const printerSelect = document.getElementById('printerList');
+                    printers.forEach(printer => {
+                        var option = document.createElement('option');
+                        option.text = printer
+                        option.value = printer;
+                        printerSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Failed to fetch printers', error));
         }
 
         // async function discoverPrinters() {
+        //     const printerList = document.getElementById('printerList');
+
         //     try {
         //         // Discover USB printers
         //         const usbDevices = await navigator.usb.getDevices();
-        //         const printerList = document.getElementById('printerList');
-
         //         usbDevices.forEach(device => {
         //             const listItem = document.createElement('li');
         //             listItem.textContent = `USB Printer: ${device.productName}`;
@@ -154,29 +140,16 @@
         //     }
 
         //     try {
-        //         // Discover Bluetooth printers
-        //         const device = await navigator.bluetooth.requestDevice({
-        //             // Replace with appropriate filters or leave empty to discover all devices
+        //         const devices = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+        //         devices.forEach(device => {
+        //             const listItem = document.createElement('li');
+        //             listItem.textContent = `Bluetooth Printer: ${device.name}`;
+        //             printerList.appendChild(listItem);
         //         });
-
-        //         // Connect to the printer
-        //         const server = await device.gatt.connect();
-
-        //         // Access printer service and characteristics
-        //         // Perform further operations as needed
-
-        //         // Display Bluetooth printer details
-        //         const printerList = document.getElementById('printerList');
-        //         const listItem = document.createElement('li');
-        //         listItem.textContent = `Bluetooth Printer: ${device.name}`;
-        //         printerList.appendChild(listItem);
         //     } catch (error) {
         //         console.error('Error discovering Bluetooth printers:', error);
         //     }
         // }
-
-        // Call the function to discover printers when the page loads
-        discoverPrinters();
     </script>
 </body>
 </html>

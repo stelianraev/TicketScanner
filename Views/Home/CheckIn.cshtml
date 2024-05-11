@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check-In</title>
+    <link rel="stylesheet" href="~/css/style.css">
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
 </head>
 <body>
     <video id="video" style="display:none;"></video>
     <canvas id="canvas" style="display:none;"></canvas>
+
+    <div id="cameraId"></div>
 
     <script type="module">
         window.addEventListener('DOMContentLoaded', () => {
@@ -18,7 +21,10 @@
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
+            if (parts.length === 2) {
+                let result = parts.pop().split(';').shift();
+                return result;
+            }
         }
 
         async function scan() {
@@ -35,13 +41,31 @@
                 //canvas.style.display = 'block';
 
                 //get camera from coockies setted in Admin Controller
-                var constraints = { video: { exact: getCookie("SelectedCameraId") } };
+                var constraints = { video: { deviceId: getCookie("SelectedCameraId") } };
 
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { constraints } // Use the front camera
-                });
+                //test
+                var span = document.createElement('span');
+                span.textContent = JSON.stringify(constraints);
+                var cameraId = document.getElementById('cameraId');
+                cameraId.appendChild(span);
+                // const stream = await navigator.mediaDevices.getUserMedia({
+                //     video: { constraints } // Use the front camera
+                // });
 
-                video.srcObject = stream;
+                //var constraints = { video: { deviceId: selectedCameraId } };
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then(stream => {
+                        video.srcObject = stream;
+                    })
+                    .catch(error => {
+                        console.error('Error accessing camera:', error);
+                    });
+
+                //needed attributes to works on Safari
+                video.setAttribute('autoplay', '');
+                video.setAttribute('muted', '');
+                video.setAttribute('playsinline', '');
+                //video.srcObject = stream;
                 video.play();
 
                 decodeQRCode(video, canvas, context);
@@ -51,6 +75,7 @@
             }
         }
 
+        //Decode QR code
         function decodeQRCode(video, canvas, context) {
             const scan = () => {
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
