@@ -1,3 +1,6 @@
-﻿body{
-    color: black
+﻿
+#buttons{
+    display: inline-block;
+    color: purple;
+    background-color: pink;
 }
