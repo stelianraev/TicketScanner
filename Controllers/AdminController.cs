@@ -12,6 +12,7 @@ namespace CheckIN.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
         public IActionResult Settings()
         {
             var cookies = this.Request.Cookies;
@@ -33,10 +34,10 @@ namespace CheckIN.Controllers
             {
                 settingsModel.SelectedCameraLabel = cookies["SelectedCameraLabel"]!;
             }
-            if (cookies.ContainsKey("PrinterName"))
-            {
-                settingsModel.PrinterName = cookies["PrinterName"]!;
-            }
+            //if (cookies.ContainsKey("PrinterName"))
+            //{
+            //    settingsModel.PrinterName = cookies["PrinterName"]!;
+            //}
 
             return View(settingsModel);
         }
@@ -56,10 +57,10 @@ namespace CheckIN.Controllers
             {
                 this.ModelState.AddModelError("Camera", "Please select camera");
             }
-            if (settingsModel.PrinterName == null)
-            {
-                this.ModelState.AddModelError("Printer", "Please select printer");
-            }
+            //if (settingsModel.PrinterName == null)
+            //{
+            //    this.ModelState.AddModelError("Printer", "Please select printer");
+            //}
 
             if (!this.ModelState.IsValid)
             {
@@ -70,7 +71,7 @@ namespace CheckIN.Controllers
             this.Response.Cookies.Append("TiToToken", settingsModel.TiToToken!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedCameraId", settingsModel.SelectedCameraId!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedCameraLabel", settingsModel.SelectedCameraLabel!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
-            this.Response.Cookies.Append("PrinterName", settingsModel.PrinterName!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+            //this.Response.Cookies.Append("PrinterName", settingsModel.PrinterName!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
 
             return RedirectToAction("Index", "Home");
         }

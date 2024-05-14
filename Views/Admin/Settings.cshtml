@@ -6,10 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-    <script src="/js/qRScanner.js"></script>
 </head>
 <body>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" type="multipart/form-data">
         <div class="form-group">
             <label asp-for="CheckInListId">CheckInNumber</label>
             <input asp-for="CheckInListId" class="form-control">
@@ -28,11 +27,14 @@
         </div>
 
         <div>
-            <h1>Select a Printer:</h1>
+            @* <h1>Select a Printer:</h1>
             <select asp-for="PrinterName" id="printerList" class="form-control">
                 <option value="" selected>Select Printer</option>
             </select>
-            <span asp-validation-for="PrinterName" class="small text-danger"></span>
+            <span asp-validation-for="PrinterName" class="small text-danger"></span> *@
+            <br />
+            <br />
+            <button id="printer">Printer Settings</button>
         </div>
 
         <h1>Select a Camera:</h1>
@@ -49,9 +51,18 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            populateCameraList();
-            discoverPrinters();
+            populateCameraList();            
+            //discoverPrinters();
+            test();
         });
+
+        ///
+        function test(){
+            document.getElementById('printer').addEventListener('click', function(){
+                window.print();
+            })
+        }
+        ///
 
         function populateCameraList() {
             var select = document.getElementById("cameraSelect");
@@ -109,20 +120,20 @@
         }
 
         // Discover printers
-        function discoverPrinters() {
-            fetch('/Printer/GetPrinters')
-                .then(response => response.json())
-                .then(printers => {
-                    const printerSelect = document.getElementById('printerList');
-                    printers.forEach(printer => {
-                        var option = document.createElement('option');
-                        option.text = printer
-                        option.value = printer;
-                        printerSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Failed to fetch printers', error));
-        }
+        // function discoverPrinters() {
+        //     fetch('/Printer/GetPrinters')
+        //         .then(response => response.json())
+        //         .then(printers => {
+        //             const printerSelect = document.getElementById('printerList');
+        //             printers.forEach(printer => {
+        //                 var option = document.createElement('option');
+        //                 option.text = printer
+        //                 option.value = printer;
+        //                 printerSelect.appendChild(option);
+        //             });
+        //         })
+        //         .catch(error => console.error('Failed to fetch printers', error));
+        // }
 
         // async function discoverPrinters() {
         //     const printerList = document.getElementById('printerList');

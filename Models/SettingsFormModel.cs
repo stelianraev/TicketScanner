@@ -17,7 +17,7 @@ namespace CheckIN.Models
         public string SelectedCameraId { get; set; }
         public string SelectedCameraLabel { get; set; }
 
-        public string? PrinterName { get; set; } 
+        //public string? PrinterName { get; set; } 
 
     }
 }

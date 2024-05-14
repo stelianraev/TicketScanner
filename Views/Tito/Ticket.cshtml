@@ -24,11 +24,21 @@
         <a class="text-monospace">Tag: @Model.Tags</a>
     </div>
     <br />
+    <div class="nav-item">
+        <a class="text-monospace">vCard: </a>
+        <img src="data:image/png;base64,@Model.VCard" alt="VCard" />
+    </div>
 
     <!-- Assign an id to the button for easier selection -->
-    <button id="printButton">Print</button>
-
+    <button onclick="printPage()">Print</button>
+    <div id="printerDiv" style="display:none"></div>
     <script>
+        function printPage() {
+            window.print();
+        }
+    </script>
+
+   @*  <script>
         // Attach event listener to the button
         debugger;
         document.getElementById("printButton").addEventListener("click", function () {
@@ -69,6 +79,6 @@
                     console.error('Error:', error);
                 });
         }
-    </script>
+    </script> *@
 </body>
 </html>
