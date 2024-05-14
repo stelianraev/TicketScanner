@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CheckIN.Controllers
 {
+    [ApiController]
+    [Route("")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -15,16 +17,21 @@ namespace CheckIN.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
+        [HttpGet]
+        [Route("CheckIn")]
         public IActionResult CheckIn()
         {
             return View();
         }
 
+        [HttpGet]
+        [Route("Registrations")]
         public IActionResult Registrations()
         {
             // Add logic for handling registrations here

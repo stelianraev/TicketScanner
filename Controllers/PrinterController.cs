@@ -8,9 +8,12 @@ using System.Web;
 
 namespace CheckIN.Controllers
 {
+    [ApiController]
+    [Route("[Controller]")]
     public class PrinterController : Controller
     {
         [HttpGet]
+        [Route("GetPrinters")]
         public IActionResult GetPrinters()
         {
             string[] printers = PrinterSettings.InstalledPrinters.Cast<string>().ToArray();
@@ -18,6 +21,7 @@ namespace CheckIN.Controllers
         }
 
         [HttpPost]
+        [Route("Print")]
         public IActionResult Print([FromBody] PrintRequest request)
         {
             try

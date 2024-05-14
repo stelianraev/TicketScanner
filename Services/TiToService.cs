@@ -37,6 +37,31 @@ namespace CheckIN.Services
             return content;
         }
 
+        public async Task<byte[]> GetVCard(string titoToken, string ticketId)
+        {
+            string endpoint = ticketId + "/vcard";
+            string url = _tiToConfiguration.VCardURL + endpoint;
+
+            // Create the HTTP request
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Add authorization header
+            request.Headers.Add("Authorization", titoToken);
+            request.Headers.Add("Accept", "application/json");
+            // Send the HTTP request
+            var response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                //TODO
+                // Log the error or handle it accordingly
+                Console.WriteLine("image error");
+            }
+
+            byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
+            return imageBytes;
+        }
+
         public async Task<HttpResponseMessage> GetTickets(string checkList)
         {
             // Construct the URL

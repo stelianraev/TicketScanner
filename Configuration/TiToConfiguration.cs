@@ -3,6 +3,7 @@
     public class TiToConfiguration
     {
         public string BaseUrl { get; set; }
+        public string VCardURL {  get; set; }
         public string Token { get; set; }
     }
 }

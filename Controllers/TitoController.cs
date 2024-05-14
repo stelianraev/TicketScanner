@@ -6,6 +6,8 @@ using Newtonsoft.Json;
 
 namespace CheckIN.Controllers
 {
+    [ApiController]
+    [Route("[Controller]")]
     public class TitoController : Controller
     {
 
@@ -20,12 +22,14 @@ namespace CheckIN.Controllers
         }
 
         [HttpGet]
+        [Route("Ticket")]
         public IActionResult Ticket()
         {
             return View(transferTicketModel);
         }
 
         [HttpPost]
+        [Route("Ticket")]
         public async Task<IActionResult> Ticket([FromBody] QRCodeDataModel data)
         {
             var checkListId = this.Request.Cookies["CheckInListId"];
@@ -42,6 +46,7 @@ namespace CheckIN.Controllers
                 var response = await _tiToService.GetTicket(token, checkListId, qrCodeData);
                                
                 var result = JsonConvert.DeserializeObject<TitoTicket>(response);
+                var getVCard = await _tiToService.GetVCard(token, qrCodeData);
 
                 if (result == null)
                 {
@@ -53,9 +58,11 @@ namespace CheckIN.Controllers
                 ticketModel.LastName = result.LastName;
                 ticketModel.CompanyName = result.CompanyName;
                 ticketModel.Tags = result.Tags;
+                ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
                 return this.View(transferTicketModel);
+
             }
             catch (Exception ex)
             {

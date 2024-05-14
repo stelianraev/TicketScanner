@@ -1,9 +1,11 @@
 using CheckIN.Configuration;
+using CheckIN.Controllers;
 using CheckIN.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Console;
 using System.Reflection;
+using System.Web.Mvc;
 
 namespace CheckIN
 {
@@ -33,7 +35,7 @@ namespace CheckIN
             //    .SetBasePath(Directory.GetCurrentDirectory())
             //    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             //    .Build();
-
+            
             if (builder.Environment.IsDevelopment())
             {
                 builder.Logging.AddSimpleConsole(options =>
@@ -42,7 +44,6 @@ namespace CheckIN
                     options.ColorBehavior = LoggerColorBehavior.Enabled;
                 });
             }
-             
             builder.Services.Configure<TiToConfiguration>(builder.Configuration.GetSection("Tito"));
 
             builder.Services.AddControllersWithViews();
@@ -50,8 +51,9 @@ namespace CheckIN
             //{
             //    options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
             //});
-            builder.Services.AddHttpClient();
 
+            builder.Services.AddHttpClient();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddSingleton<ITiToService, TiToService>();
         }
 
@@ -61,6 +63,9 @@ namespace CheckIN
             app.UseStaticFiles();
             app.UseHsts();
 
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
             app.UseRouting();
 
             app.UseAuthorization();
@@ -69,7 +74,14 @@ namespace CheckIN
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    //pattern: "{controller=Home}/{action=Index}/{id?}",
+                    pattern: "{controller}/{action}/{id}",
+                    defaults: new
+                    {
+                        controller = "Home",
+                        action = "Index",
+                        id = UrlParameter.Optional,
+                    });
             });
         }
     }
