@@ -1,0 +1,128 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    background-image: url("https://www.webit.org/festival-europe/img/xd/video.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin: 0;
+    height: 100vh;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    backdrop-filter: blur(4px);
+}
+
+.buttonsArticle {
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    margin-left: 35%;
+    margin-top: 10%;
+    justify-content: center;
+    gap: 50px;
+}
+
+    .buttonsArticle button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 150px; /* Set a fixed width */
+        height: 150px; /* Set a fixed height */
+        border-radius: 20%;
+        padding: 120px; /* Adjust padding as necessary */
+        box-sizing: border-box;
+        box-shadow: 1px 20px 5px 8px rgb(26, 25, 25);
+        text-align: center;
+        font-family: "Bebas Neue", sans-serif;
+        font-weight: 400;
+        font-size: 250%;
+        color: rgb(244, 244, 255);
+        -webkit-text-stroke: 2px rgb(0, 0, 0);
+    }
+
+.settings {
+    position: absolute;
+    width: 3%;
+    padding: 10px;
+    border-radius: 10px;
+    margin-left: 80%;
+    margin-bottom: 111%;
+    background: rgb(255, 235, 239);
+    box-shadow: 1px 6px 3px 3px rgb(0, 0, 0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#fc00e6",GradientType=1);
+}
+
+/* Optional: Styling for the buttons */
+.buttonsArticle button:first-of-type {
+    background-image: linear-gradient(to bottom, #786bd1, #8864d6, #9a5bd9, #ad4fd9, #c13dd6, #c950dd, #d060e4, #d870eb, #d89af9, #debeff, #ebe0ff, #ffffff);
+}
+
+.buttonsArticle button:last-of-type {
+    background-image: linear-gradient(to bottom, #786bd1, #8864d6, #9a5bd9, #ad4fd9, #c13dd6, #c950dd, #d060e4, #d870eb, #d89af9, #debeff, #ebe0ff, #ffffff);
+}
+
+/* carosel settings */
+.slider {
+    /* background: white; */
+    /* box-shadow: 0 10px 20px -5px rgba(0, 0, 0, .125); */
+    position: relative;
+    height: 140px;
+    margin-bottom: 30px;
+    display: inline-flex;
+    width: 100%;
+    overflow: hidden;
+}
+
+    .slider::before,
+    .slider::after {
+        background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+        content: "";
+        height: 100px;
+        position: relative;
+        width: 200px;
+        z-index: 2;
+    }
+
+    .slider::after {
+        right: 0;
+        top: 0;
+        transform: rotateZ(180deg);
+    }
+
+    .slider::before {
+        left: 0;
+        top: 0;
+    }
+
+.slide-track {
+    display: flex;
+    width: 100%; /* 7 slides * 2 for seamless loop */
+    animation: scroll 50s linear infinite;
+    justify-content: space-between;
+    min-width: 100vh;
+}
+
+.slide {
+    height: 100px;
+    width: 250px;
+    margin: 5px;
+    box-shadow: 2px 2px 8px #8a8a8a;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-250px * 7));
+    }
+}
