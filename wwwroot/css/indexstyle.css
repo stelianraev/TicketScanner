@@ -37,6 +37,7 @@ body {
         width: 150px; /* Set a fixed width */
         height: 150px; /* Set a fixed height */
         border-radius: 20%;
+        border-color: white;
         padding: 120px; /* Adjust padding as necessary */
         box-sizing: border-box;
         box-shadow: 1px 20px 5px 8px rgb(26, 25, 25);
