@@ -1,0 +1,25 @@
+﻿.slider {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-basis: 100%;
+    margin-top: 0px;
+    animation: scroll 50s linear infinite;
+}
+
+.slider img {
+    width: 400px;
+    height: 100px;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(calc(-250px * 7));
+    }
+}
