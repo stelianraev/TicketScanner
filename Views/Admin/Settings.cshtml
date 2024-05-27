@@ -5,64 +5,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <link rel="stylesheet" href="/css/settings.css" type="text/css">
+
+    <title>Settings</title>
 </head>
 <body>
-    <form method="post" type="multipart/form-data">
-        <div class="form-group">
-            <label asp-for="CheckInListId">CheckInNumber</label>
-            <input asp-for="CheckInListId" class="form-control">
-            <span asp-validation-for="CheckInListId" class="small text-danger"></span>
-        </div>
+    <section class="settings">
+        <form method="post" type="multipart/form-data">
+            <section class="titoSettings">
+                <div class="form-group">
+                    <label asp-for="CheckInListId">CheckInNumber</label>
+                    <input asp-for="CheckInListId" class="form-control">
+                    <span asp-validation-for="CheckInListId" class="small text-danger"></span>
+                </div>
 
-        <div class="form-group">
-            <label asp-for="TiToToken">Token</label>
-            <input asp-for="TiToToken" class="form-control">
-            <span asp-validation-for="TiToToken" class="small text-danger"></span>
-        </div>
+                <div class="form-group">
+                    <label asp-for="TiToToken">Token</label>
+                    <input asp-for="TiToToken" class="form-control">
+                    <span asp-validation-for="TiToToken" class="small text-danger"></span>
+                </div>
 
-        <div>
-            <input type="hidden" asp-for="SelectedCameraId" id="selectedCameraId">
-            <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">
-        </div>
+                <div>
+                    <input type="hidden" asp-for="SelectedCameraId" id="selectedCameraId">
+                    <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">
+                </div>
+            </section>
 
-        <div>
-            @* <h1>Select a Printer:</h1>
-            <select asp-for="PrinterName" id="printerList" class="form-control">
-                <option value="" selected>Select Printer</option>
-            </select>
-            <span asp-validation-for="PrinterName" class="small text-danger"></span> *@
-            <br />
-            <br />
-            <button id="printer">Printer Settings</button>
-        </div>
+            <section class="printerSettings">
+                <div>
+                    @* <h1>Select a Printer:</h1>
+                    <select asp-for="PrinterName" id="printerList" class="form-control">
+                    <option value="" selected>Select Printer</option>
+                    </select>
+                    <span asp-validation-for="PrinterName" class="small text-danger"></span> *@
+                    <label>Printer Settings</label>
+                    <button id="printer">Printer Settings</button>
+                </div>
+            </section>
 
-        <h1>Select a Camera:</h1>
-        <select asp-for="SelectedCameraId" id="cameraSelect" class="form-control">
-            <option value="" selected>Select Camera</option>
-        </select>
-        <button type="button" onclick="startCamera()">Test Camera</button>
-        <span asp-validation-for="SelectedCameraId" class="small text-danger"></span>
-        <video id="cameraPreview" width="120" height="120" autoplay></video>
-        <button id="save" type="submit">Save</button>
-    </form>
-
-    <div id="cameraId"></div>
+            <section class="selectCamera">
+                <section class="selectCameraBtn">
+                    <label asp-for="SelectedCameraId">Select Camera</label>
+                    <select asp-for="SelectedCameraId" id="cameraSelect" class="form-control">
+                        <option value="" selected>Select Camera</option>
+                    </select>
+                    <button type="button" onclick="startCamera()">Test Camera</button>
+                    <span asp-validation-for="SelectedCameraId" class="small text-danger"></span>
+                </section>
+                <section class="videoSection">
+                    <video class="cameraPreview" id="cameraPreview" autoplay></video>
+                </section>
+            </section>
+            <button id="save" type="submit">Save</button>
+        </form>
+    </section>
+    @* test *@
+   @*  <div id="cameraId"></div> *@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            populateCameraList();            
+            populateCameraList();
             //discoverPrinters();
-            test();
+            printerSettings();
         });
 
-        ///
-        function test(){
-            document.getElementById('printer').addEventListener('click', function(){
+        function printerSettings() {
+            document.getElementById('printer').addEventListener('click', function () {
+                event.preventDefault();
                 window.print();
             })
         }
-        ///
 
         function populateCameraList() {
             var select = document.getElementById("cameraSelect");
@@ -100,10 +112,10 @@
             var constraints = { video: { deviceId: selectedCameraId } };
 
             //test
-            var el = document.getElementById('cameraId');
-            var newEl = document.createElement('span');
-            newEl.textContent = JSON.stringify(constraints);
-            el.appendChild(newEl);
+            // var el = document.getElementById('cameraId');
+            // var newEl = document.createElement('span');
+            // newEl.textContent = JSON.stringify(constraints);
+            // el.appendChild(newEl);
 
             navigator.mediaDevices.getUserMedia(constraints)
                 .then(stream => {

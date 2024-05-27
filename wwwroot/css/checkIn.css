@@ -24,39 +24,57 @@ body {
     margin-left: 28%;
     border-radius: 20px;
     object-fit: cover;
-    box-shadow: -1px 1px 20px 7px #AE3541;
+    box-shadow: -1px 1px 20px 7px black;
 }
 
-@media all and (max-width: 860px) {
+@media (min-width:320px) { /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
     .video {
-        width: 80%;
-        height: 80%;
-        margin-top: 20%;
-        margin-left: 10%;
+        width: 60%;
+        height: 60%;
+        margin-left: 20%;
+        margin-top:10%;
     }
 }
 
-@media all and (max-width: 550px) {
+@media (min-width:480px) { /* smartphones, Android phones, landscape iPhone */
+    
+}
+
+@media (min-width:600px) { /* portrait tablets, portrait iPad, e-readers (Nook/Kindle), landscape 800x480 phones (Android) */
     .video {
-        width: 80%;
-        height: 80%;
-        margin-top: 20%;
-        margin-left: 10%;
+        width: 40%;
+        height: 40%;
+        margin-left: 30%;
+        margin-top: 7%;
     }
 }
 
-@media all and (max-width: 440px) {
-   .video {
-        margin-top: 30%;
-        margin-left: 10%;
-    }
-}
-
-@media all and (max-width: 380px) {
+@media (min-width:801px) { /* tablet, landscape iPad, lo-res laptops ands desktops */
     .video {
-        width: 90%;
-        height: 90%;
-        margin-top: 30%;
-        margin-left: 4%;
+        width: 30%;
+        height: 30%;
+        margin-left: 35%;
+        margin-top: 6%;
     }
+}
+
+@media (min-width:1025px) { /* big landscape tablets, laptops, and desktops */
+    .video {
+        width: 40%;
+        height: 40%;
+        margin-left: 30%;
+        margin-top: 6%;
+    }
+}
+
+@media screen and (min-width: 803px) and (max-width: 1000px) and (min-height: 710px) and (max-height: 1280px) {
+    .video {
+        width: 60%;
+        height: 60%;
+        margin-left: 20%;
+        margin-top: 6%;
+    }
+}
+@media (min-width:1281px) { /* hi-res laptops and desktops */
+    
 }

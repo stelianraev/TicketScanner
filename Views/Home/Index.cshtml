@@ -6,6 +6,7 @@
     <title>Home</title>
     <link rel="stylesheet" href="/css/indexstyle.css" type="text/css">
     <link rel="stylesheet" href="/css/slider.css" type="text/css">
+    <script src="https://kit.fontawesome.com/df3fd09ff3.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <section class="slider">
@@ -43,6 +44,10 @@
 
         document.getElementById("settings").addEventListener("click", function () {
             window.location.href = "@Url.Action("Settings", "Admin")";
+        });
+
+        document.getElementById("registrationsButton").addEventListener("click", function () {
+            window.location.href = "https://www.webit.org/festival-europe/tickets.php";
         });
     </script>
 </body>
