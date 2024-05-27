@@ -43,10 +43,15 @@ namespace CheckIN.Controllers
             try
             {
                 string qrCodeData = data.QRCodeData;
-                var response = await _tiToService.GetTicket(token, checkListId, qrCodeData);
-                               
-                var result = JsonConvert.DeserializeObject<TitoTicket>(response);
-                var getVCard = await _tiToService.GetVCard(token, qrCodeData);
+
+                var response = await _tiToService.GetTicketAndVCardAsync(token, checkListId, qrCodeData);
+                string ticketContent = response.ticketContent;
+                byte[] vCardContent = response.vCardContent;
+
+                //var response = await _tiToService.GetTicket(token, checkListId, qrCodeData);
+
+                var result = JsonConvert.DeserializeObject<TitoTicket>(ticketContent);
+                //var getVCard = await _tiToService.GetVCard(token, qrCodeData);
 
                 if (result == null)
                 {
@@ -58,9 +63,10 @@ namespace CheckIN.Controllers
                 ticketModel.LastName = result.LastName;
                 ticketModel.CompanyName = result.CompanyName;
                 ticketModel.Tags = result.Tags;
-                ticketModel.VCard = Convert.ToBase64String(getVCard);
+                ticketModel.VCard = Convert.ToBase64String(vCardContent);
 
                 transferTicketModel = ticketModel;
+
                 return this.View(transferTicketModel);
 
             }

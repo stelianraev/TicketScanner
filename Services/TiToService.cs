@@ -11,18 +11,16 @@ namespace CheckIN.Services
         {
             _tiToConfiguration = titoConfiguration.Value;
         }
-        public async Task<string> GetTicket(string titoToken, string checkInListId, string ticketId)
+        private async Task<string> GetTicketAsync(string titoToken, string checkInListId, string ticketId)
         {
             string endpoint = checkInListId + "/tickets/" + ticketId;
             string url = _tiToConfiguration.BaseUrl + endpoint;
 
-            // Create the HTTP request
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            // Add authorization header
             request.Headers.Add("Authorization", titoToken);
             request.Headers.Add("Accept", "application/json");
-            // Send the HTTP request
+
             var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -37,18 +35,16 @@ namespace CheckIN.Services
             return content;
         }
 
-        public async Task<byte[]> GetVCard(string titoToken, string ticketId)
+        private async Task<byte[]> GetVCardAsync(string titoToken, string ticketId)
         {
             string endpoint = ticketId + "/vcard";
             string url = _tiToConfiguration.VCardURL + endpoint;
 
-            // Create the HTTP request
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            // Add authorization header
             request.Headers.Add("Authorization", titoToken);
             request.Headers.Add("Accept", "application/json");
-            // Send the HTTP request
+
             var response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
@@ -62,31 +58,35 @@ namespace CheckIN.Services
             return imageBytes;
         }
 
+        public async Task<(string ticketContent, byte[] vCardContent)> GetTicketAndVCardAsync(string titoToken, string checkInListId, string ticketId)
+        {
+            var getTicketTask = GetTicketAsync(titoToken, checkInListId, ticketId);
+
+            var getVCardTask = GetVCardAsync(titoToken, ticketId);
+
+            await Task.WhenAll(getTicketTask, getVCardTask);
+
+            return (getTicketTask.Result, getVCardTask.Result);
+        }
+
         public async Task<HttpResponseMessage> GetTickets(string checkList)
         {
-            // Construct the URL
             string endpoint = "chk_pK7sbQvPYWAwocdhOMVfrvA/tickets";
             string url = _tiToConfiguration.BaseUrl + endpoint;
 
-            // Create the HTTP request
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            // Add authorization header
             request.Headers.Add("Authorization", _tiToConfiguration.Token);
 
-            // Send the HTTP request
             var response = await _httpClient.SendAsync(request);
 
-            // Handle the response
             if (response.IsSuccessStatusCode)
             {
-                // Process successful response
                 string responseBody = await response.Content.ReadAsStringAsync();
                 Console.WriteLine("Response Body: " + responseBody);
             }
             else
             {
-                // Handle error response
                 Console.WriteLine("Error: " + response.StatusCode);
             }
 
