@@ -39,6 +39,14 @@
     @*  <div id="printerDiv" style="display:none"></div> *@
     <script>
         function printPage() {
+
+            window.onafterprint = function () {
+                // Redirect after printing
+                setTimeout(function () {
+                    window.location.href = "@Url.Action("Index", "Home")";
+                }, 7000);
+            };
+            // Trigger the print dialog
             window.print();
         }
     </script>
