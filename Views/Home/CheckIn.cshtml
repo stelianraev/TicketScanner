@@ -4,10 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Check-In</title>
-    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="/css/checkIn.css" type="text/css">
+    <link rel="stylesheet" href="/css/slider.css" type="text/css">
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
 </head>
 <body>
+    <section class="slider">
+        <img src="/lib/a1.jpg" alt="Image 1" />
+        <img src="/lib/adobe.png" alt="Image 2" />
+        <img src="/lib/akamai.jpg" alt="Image 3" />
+        <img src="/lib/bayer.jpg" alt="Image 4" />
+        <img src="/lib/cisko.jpg" alt="Image 5" />
+        <img src="/lib/generali.jpg" alt="Image 6" />
+        <img src="/lib/huawei.png" alt="Image 7" />
+        <img src="/lib/ibm.jpg" alt="Image 8" />
+        <img src="/lib/mastercard.jpg" alt="Image 9" />
+        <img src="/lib/microsoft.jpg" alt="Image 10" />
+        <img src="/lib/neilsen.jpg" alt="Image 11" />
+        <img src="/lib/qualcom.jpg" alt="Image 12" />
+        <img src="/lib/sap.jpg" alt="Image 13" />
+        <img src="/lib/siemens.jpg" alt="Image 14" />
+        <img src="/lib/softlayer.jpg" alt="Image 15" />
+        <img src="/lib/telus.jpg" alt="Image 16" />
+        <img src="/lib/visa.png" alt="Image 17" />
+    </section>
+
     <video id="video" style="display:none;"></video>
     <canvas id="canvas" style="display:none;"></canvas>
 
@@ -37,17 +58,19 @@
             canvas.height = displaySize.height;
 
             try {
-                video.style.display = 'block';
+                video.style.display = 'flex';
+                video.classList.add("video");
                 //canvas.style.display = 'block';
 
                 //get camera from coockies setted in Admin Controller
                 var constraints = { video: { deviceId: getCookie("SelectedCameraId") } };
 
                 //test
-                var span = document.createElement('span');
-                span.textContent = JSON.stringify(constraints);
-                var cameraId = document.getElementById('cameraId');
-                cameraId.appendChild(span);
+                // var span = document.createElement('span');
+                // span.textContent = JSON.stringify(constraints);
+                // var cameraId = document.getElementById('cameraId');
+                // cameraId.appendChild(span);
+
                 // const stream = await navigator.mediaDevices.getUserMedia({
                 //     video: { constraints } // Use the front camera
                 // });
@@ -87,7 +110,8 @@
                     video.srcObject.getTracks().forEach(track => track.stop());
                     video.style.display = 'none';
                     canvas.style.display = 'none';
-                    alert('QR Code data: ' + code.data);
+                    //alert showing ticket id
+                    // alert('QR Code data: ' + code.data);
                     sendDataToServer(code.data);
                     // You can handle the QR code data here, e.g., redirecting to a URL or making a server request
                 } else {

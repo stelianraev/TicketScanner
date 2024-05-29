@@ -1,0 +1,200 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.container {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+    display: flex;
+    flex-direction: column;
+    padding: 0rem;
+}
+
+.titoSettings {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 10%;
+    gap: 20px
+}
+
+    .titoSettings .form-control {
+        display: flex;
+        flex-direction: row;
+        margin-right: 20px;
+        width: 100%;
+        max-width: 50rem;
+    }
+
+.printerSettings {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    margin-left: 10%;
+    margin-bottom: 5%;
+    margin-top: 5%;
+}
+
+#printer {
+    margin-left: 10px;
+}
+
+.selectCamera {
+    display: flex;
+    flex-direction: row;
+    flex-basis: 100%;
+    margin-left: 10%;
+    margin-bottom: 10%;
+    width: 100%;
+}
+
+.videoSection {
+    display: flex;
+    width: 100%;
+    margin-left: 10%;
+}
+
+.cameraPreview {
+    display: flex;
+    width: 100%;
+    max-width: 30%;
+}
+
+#save {
+    display: flex;
+    width: 90%;
+    margin-left: 5%;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+}
+
+@media (max-width: 480px) { /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
+    .titoSettings .form-control,
+    #cameraSelect {
+        width: 100%; /* Adjusted width to 100% for better responsiveness */
+    }
+
+    .titoSettings {
+        gap: 20px; /* Adjusted gap for better spacing on small screens */
+        margin-left: 5%; /* Adjusted margin for better spacing on small screens */
+    }
+
+    .printerSettings {
+        margin-bottom: 14%;
+        margin-left: 5%; /* Adjusted margin for better spacing on small screens */
+    }
+
+    .selectCamera, .videoSection {
+        margin-left: 5%; /* Adjusted margin for better spacing on small screens */
+        margin-right: 5%; /* Added right margin for better spacing on small screens */
+    }
+}
+
+@media (min-width: 480px) and (orientation: landscape) { /* smartphones, Android phones, landscape iPhone */
+
+    .titoSettings, .printerSettings, .selectCamera, .videoSection {
+        margin-left: 5%; /* Adjusted margin for better spacing in landscape mode */
+        margin-right: 5%; /* Added right margin for better spacing in landscape mode */
+    }
+
+        .titoSettings .form-control,
+        #cameraSelect {
+            width: 100%; /* Adjusted width to 100% for better responsiveness in landscape mode */
+        }
+}
+
+@media (min-width: 600px) { /* portrait tablets, portrait iPad, e-readers (Nook/Kindle), landscape 800x480 phones (Android) */
+    .titoSettings .form-control,
+    #cameraSelect {
+        width: 80%;
+        margin-bottom: 0px;
+    }
+
+    .container {
+        margin-top: 10px;
+    }
+
+    .selectCamera {
+        display: flex;
+        width: 152%;
+        margin-bottom: 3%;
+    }
+
+    .selectCameraBtn {
+        display: flex;
+        flex-direction: column;
+        max-width: 50%;
+        width: 30%;
+    }
+
+    .settings {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #cameraSelect {
+        width: 100%;
+    }
+
+    .titoSettings {
+        margin-top:2px;
+        gap: 7px;
+    }
+
+    .printerSettings {
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    #save{
+        max-width:100%
+    }
+
+}
+
+@media (min-width: 801px) { /* tablet, landscape iPad, lo-res laptops and desktops */
+    .container {
+        margin-top: 10px;
+    }
+
+    #save{
+        margin-bottom:10px;
+    }
+
+    .selectCamera {
+        width: 152%;
+        margin-bottom: 1%;
+    }
+
+    #cameraSelect{
+        margin-top:5px;
+    }
+
+    .settings {
+        margin-left: 10px;
+    }
+
+    .titoSettings {
+        margin-top: 10px;
+        gap: 12px;
+    }
+
+    .printerSettings {
+        margin-top: 2%;
+        margin-bottom: 4%;
+    }
+}
+
+@media (min-width: 1025px) { /* big landscape tablets, laptops, and desktops */
+
+}
+
+@media (min-width: 1281px) { /* hi-res laptops and desktops */
+
+}

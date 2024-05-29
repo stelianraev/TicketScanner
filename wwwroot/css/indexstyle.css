@@ -16,22 +16,6 @@ body {
     min-height: 100vh;
 }
 
-.slider {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-basis: 100%;
-    margin-top: 0px;
-    animation: scroll 50s linear infinite;
-}
-
-.slider img {
-    width: 400px;
-    height: 100px;
-    object-fit: cover;
-    margin-right: 10px;
-}
-
 .settingsSection {
     display: flex;
     justify-content: flex-end;
@@ -40,7 +24,10 @@ body {
 .settingsBtn {
     display: flex;
     margin-top: 10px;
+    margin-right: 30px;
     background-color: black;
+    width:1rem;
+    height:1rem;
     color: white;
 }
 
@@ -61,35 +48,20 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    border: 5px solid #FFE7CD;
-    box-shadow: -1px 1px 20px 7px #AE3541;
+    border: 1px solid white;
+    box-shadow: -1px 1px 20px 7px black;
     font-family: "Bebas Neue", sans-serif;
     font-weight: 450;
-    font-size: 400%;
+    font-size: 600%;
     width: 60%;
     height: 60%;
+    color: black
 }
 
-@media all and (max-width: 820px) {
-    .buttonsSection {
-        margin-top: 30%;
-    }
-}
 
-@media all and (max-width: 550px) {
+@media (min-width:320px) { /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
     .buttonsSection {
-        margin-top: 30%;
-    }
-
-    .checkInButton, .registrationsButton {
-        font-weight: 450;
-        font-size: 300%;
-    }
-}
-
-@media all and (max-width: 440px) {
-    .buttonsSection {
-        margin-top: 30%;
+        margin-top: 20%;
     }
 
     .checkInButton, .registrationsButton {
@@ -98,25 +70,62 @@ body {
     }
 }
 
-@media all and (max-width: 275px) {
+@media (min-width:480px) { /* smartphones, Android phones, landscape iPhone */
     .buttonsSection {
-        margin-top: 30%;
+        margin-top: 15%;
     }
 
     .checkInButton, .registrationsButton {
         font-weight: 450;
-        font-size: 100%;
+        font-size: 300%;
     }
 }
 
-
-
-@keyframes scroll {
-    0% {
-        transform: translateX(0);
+@media (min-width:600px) { /* portrait tablets, portrait iPad, e-readers (Nook/Kindle), landscape 800x480 phones (Android) */
+    .buttonsSection {
+        margin-top: 5%;
     }
 
-    100% {
-        transform: translateX(calc(-250px * 7));
+    .checkInButton, .registrationsButton {
+        width: 40%;
+        height: 60%;
+        font-weight: 450;
+        font-size: 160%;
     }
 }
+
+@media (min-width:801px) { /* tablet, landscape iPad, lo-res laptops ands desktops */
+    .buttonsSection {
+        margin-top: 5%;
+    }
+
+    .checkInButton, .registrationsButton {
+        width: 40%;
+        height: 60%;
+        font-size: 200%;
+    }
+}
+
+@media (min-width:1025px) { /* big landscape tablets, laptops, and desktops */
+    .buttonsSection {
+        margin-top: 10%;
+    }
+
+    .checkInButton, .registrationsButton {
+        width: 40%;
+        height: 60%;
+        font-size: 400%;
+    }
+}
+
+@media (min-width:1281px) { /* hi-res laptops and desktops */
+    .buttonsSection {
+        margin-top: 10%;
+    }
+
+    .checkInButton, .registrationsButton {
+        font-weight: 450;
+        font-size: 400%;
+    }
+}
+
