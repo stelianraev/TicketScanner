@@ -13,7 +13,7 @@ namespace CheckIN.Controllers
 
         private readonly ILogger<HomeController> _logger;
         private readonly ITiToService _tiToService;
-        private static TicketViewModel transferTicketModel;
+        private static TicketViewModel? transferTicketModel;
 
         public TitoController(ILogger<HomeController> logger, ITiToService tiToService)
         {
@@ -42,16 +42,16 @@ namespace CheckIN.Controllers
 
             try
             {
-                string qrCodeData = data.QRCodeData;
+                string? qrCodeData = data.QRCodeData;
 
-                var response = await _tiToService.GetTicketAndVCardAsync(token, checkListId, qrCodeData);
-                string ticketContent = response.ticketContent;
-                byte[] vCardContent = response.vCardContent;
+                //var response = await _tiToService.GetTicketAndVCardAsync(token, checkListId, qrCodeData);
+                //string ticketContent = response.ticketContent;
+                //byte[] vCardContent = response.vCardContent;
 
-                //var response = await _tiToService.GetTicket(token, checkListId, qrCodeData);
+                var response = await _tiToService.GetTicketAsync(token, checkListId, qrCodeData);
 
-                var result = JsonConvert.DeserializeObject<TitoTicket>(ticketContent);
-                //var getVCard = await _tiToService.GetVCard(token, qrCodeData);
+                var result = JsonConvert.DeserializeObject<TitoTicket>(response);
+                var getVCard = await _tiToService.GetVCardAsync(token, qrCodeData);
 
                 if (result == null)
                 {
@@ -63,7 +63,7 @@ namespace CheckIN.Controllers
                 ticketModel.LastName = result.LastName;
                 ticketModel.CompanyName = result.CompanyName;
                 ticketModel.Tags = result.Tags;
-                ticketModel.VCard = Convert.ToBase64String(vCardContent);
+                ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
 
@@ -81,6 +81,6 @@ namespace CheckIN.Controllers
 
     public class QRCodeDataModel
     {
-        public string QRCodeData { get; set; }
+        public string? QRCodeData { get; set; }
     }
 }
