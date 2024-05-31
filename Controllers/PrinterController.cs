@@ -27,12 +27,12 @@ namespace CheckIN.Controllers
             try
             {
                 var printModel = new StringBuilder();
-                printModel.AppendLine("Name:" + request.DocumentContent.FirstName + " " + request.DocumentContent.LastName);
-                printModel.AppendLine("Email:" + request.DocumentContent.Email);
-                printModel.AppendLine("Company Name:" + request.DocumentContent.CompanyName);
-                printModel.AppendLine("Tags:" + request.DocumentContent.Tags);
+                printModel.AppendLine("Name:" + request.DocumentContent?.FirstName + " " + request.DocumentContent?.LastName);
+                printModel.AppendLine("Email:" + request.DocumentContent?.Email);
+                printModel.AppendLine("Company Name:" + request.DocumentContent?.CompanyName);
+                printModel.AppendLine("Tags:" + request.DocumentContent?.Tags);
 
-                PrintDocument printDoc = new PrintDocument();
+                var printDoc = new PrintDocument();
                 printDoc.PrinterSettings.PrinterName = HttpUtility.UrlDecode(request.PrinterName);
                 printDoc.PrintPage += (sender, e) =>
                 {
@@ -52,6 +52,6 @@ namespace CheckIN.Controllers
 
 public class PrintRequest
 {
-    public string PrinterName { get; set; }
-    public TicketViewModel DocumentContent { get; set; }
+    public string? PrinterName { get; set; }
+    public TicketViewModel? DocumentContent { get; set; }
 }

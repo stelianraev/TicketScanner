@@ -6,10 +6,10 @@ namespace CheckIN.Services
     {
         public Task<HttpResponseMessage> GetTickets(string checkListId);
 
-        public Task<(string ticketContent, byte[] vCardContent)> GetTicketAndVCardAsync(string titoToken, string checkInListId, string ticketId);
+        //public Task<(string ticketContent, byte[] vCardContent)> GetTicketAndVCardAsync(string titoToken, string checkInListId, string ticketId);
 
-        //public Task<string> GetTicket(string titoToken, string checkListId, string ticketId);
+        public Task<string> GetTicketAsync(string titoToken, string checkListId, string ticketId);
 
-        //public Task<byte[]> GetVCard(string titoToken, string ticketId);
+        public Task<byte[]> GetVCardAsync(string titoToken, string ticketId);
     }
 }

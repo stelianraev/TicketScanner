@@ -11,7 +11,7 @@ namespace CheckIN.Services
         {
             _tiToConfiguration = titoConfiguration.Value;
         }
-        private async Task<string> GetTicketAsync(string titoToken, string checkInListId, string ticketId)
+        public async Task<string> GetTicketAsync(string titoToken, string checkInListId, string ticketId)
         {
             string endpoint = checkInListId + "/tickets/" + ticketId;
             string url = _tiToConfiguration.BaseUrl + endpoint;
@@ -35,7 +35,7 @@ namespace CheckIN.Services
             return content;
         }
 
-        private async Task<byte[]> GetVCardAsync(string titoToken, string ticketId)
+        public async Task<byte[]> GetVCardAsync(string titoToken, string ticketId)
         {
             string endpoint = ticketId + "/vcard";
             string url = _tiToConfiguration.VCardURL + endpoint;
@@ -58,16 +58,16 @@ namespace CheckIN.Services
             return imageBytes;
         }
 
-        public async Task<(string ticketContent, byte[] vCardContent)> GetTicketAndVCardAsync(string titoToken, string checkInListId, string ticketId)
-        {
-            var getTicketTask = GetTicketAsync(titoToken, checkInListId, ticketId);
+        //public async Task<(string ticketContent, byte[] vCardContent)> GetTicketAndVCardAsync(string titoToken, string checkInListId, string ticketId)
+        //{
+        //    var getTicketTask = GetTicketAsync(titoToken, checkInListId, ticketId);
 
-            var getVCardTask = GetVCardAsync(titoToken, ticketId);
+        //    var getVCardTask = GetVCardAsync(titoToken, ticketId);
 
-            await Task.WhenAll(getTicketTask, getVCardTask);
+        //    await Task.WhenAll(getTicketTask, getVCardTask);
 
-            return (getTicketTask.Result, getVCardTask.Result);
-        }
+        //    return (getTicketTask.Result, getVCardTask.Result);
+        //}
 
         public async Task<HttpResponseMessage> GetTickets(string checkList)
         {
