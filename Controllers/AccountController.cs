@@ -2,6 +2,7 @@
 using CheckIN.Models.ViewModels;
 using CheckIN.Services.Customer;
 using Identity.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +15,15 @@ namespace CheckIN.Controllers
         private readonly ICustomerProvider _customerProvider;
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AccountController(ApplicationDbContext context, ICustomerProvider customerProvider, SignInManager<User> signInManager, UserManager<User> userManager)
+        public AccountController(ApplicationDbContext context, ICustomerProvider customerProvider, SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _customerProvider = customerProvider;
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
@@ -46,7 +49,7 @@ namespace CheckIN.Controllers
                 var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Login", "Account");
                 }
                 else
                 {
@@ -54,43 +57,139 @@ namespace CheckIN.Controllers
                 }
             }
 
+            return RedirectToAction("Index", "Home");
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult UserRegistration()
+        {
+            var customerId = GetCurrentTenantId();
+
+            if (String.IsNullOrEmpty(customerId) || String.IsNullOrWhiteSpace(customerId))
+            {
+                return Unauthorized();
+            }
+
+            var model = new UserRegistrationViewModel
+            {
+                CustomerId = customerId
+            };
+
             return View(model);
         }
 
-
-
-
-        public IActionResult Registration() => View();
-
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> UserRegistration(LoginViewModel user)
+        public async Task<IActionResult> UserRegistration(UserRegistrationViewModel user)
         {
-            if(ModelState.IsValid)
+            var customerId = GetCurrentTenantId();
+
+            if (String.IsNullOrEmpty(customerId) || String.IsNullOrWhiteSpace(customerId))
+            {
+                return Unauthorized();
+            }
+
+            if (user.Password != user.ConfirmPassword)
+            {
+                ModelState.AddModelError(user.Password, "Passwords does not match");
+            }
+
+            if(!ModelState.IsValid)
             {
                 return View(user);
             }
 
-            var registeredUser = new User
-            {                
-                Email = user.Email
-                
+            var customer = await _context.Customers.FindAsync(customerId);
+            if (customer == null)
+            {
+                ModelState.AddModelError(string.Empty, "Invalid customer.");
+
+                return View(user);
+            }
+
+            var newUser = new User
+            {
+                UserName = user.Email,
+                Email = user.Email,
+                CustomerId = user.CustomerId
             };
 
-          var result = await _userManager.CreateAsync(registeredUser, user.Password);
+
+          var result = await _userManager.CreateAsync(newUser, user.Password);
 
             if(!result.Succeeded)
             {
-                var errors = result.Errors.Select(x => x.Description);
-
-                foreach(var error in errors)
+                foreach (var error in result.Errors)
                 {
-                    ModelState.AddModelError(string.Empty, error);
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
 
                 return View(user);
             }
 
-            return RedirectToAction("Registration", "Users"); 
+            return RedirectToAction("Index", "Home"); 
+        }
+
+        [HttpGet]
+        public IActionResult CustomerRegistration()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CustomerRegistration(CustomerRegistrationViewModel customer)
+        {
+            if(customer.Password != customer.ConfirmPassowrd)
+            {
+                ModelState.AddModelError(customer.Password, "Passwords does not match");
+                return View(customer);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(customer);
+            }
+
+            var customerCanonicalId = Guid.NewGuid().ToString();
+            var newCustomer = new Customer { CanonicalId = customerCanonicalId,  Name = customer.Name };
+            _context.Customers.Add(newCustomer);           
+
+            var adminUser = new User
+            {
+                UserName = customer.Email,
+                Email = customer.Email,
+                CustomerId = newCustomer.CanonicalId
+            };
+
+            var result = await _userManager.CreateAsync(adminUser, customer.Password);
+
+            if (result.Succeeded)
+            {
+                if (!await _roleManager.RoleExistsAsync("Admin"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                }
+
+                await _userManager.AddToRoleAsync(adminUser, "Admin");
+
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index", "Home");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(customer);
+        }
+
+        private string GetCurrentTenantId()
+        {
+            var userId = _userManager.GetUserId(User);
+            var user = _userManager.FindByIdAsync(userId).Result;
+            return user.CustomerId;
         }
     }
 }

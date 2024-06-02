@@ -3,8 +3,8 @@ namespace CheckIN.Data.Model
 {
     public class User : IdentityUser
     {
-        public string? CustomerId { get; set; }
-        public Customer? Customer { get; set; }
+        public string CustomerId { get; set; } = null!;
+        public Customer Customer { get; set; } = null!;
         public virtual ICollection<UserEvent>? UserEvents { get; set; }
     }
 }

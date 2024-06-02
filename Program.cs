@@ -57,6 +57,7 @@ namespace CheckIN
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 0;
             })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -71,6 +72,7 @@ namespace CheckIN
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddHttpClient();
             builder.Services.AddSwaggerGen();
+
             builder.Services.AddSingleton<ITiToService, TiToService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
         }

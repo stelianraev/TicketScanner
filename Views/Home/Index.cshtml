@@ -9,45 +9,18 @@
     <script src="https://kit.fontawesome.com/df3fd09ff3.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <section class="slider">
-        <img src="/lib/a1.jpg" alt="Image 1" />
-        <img src="/lib/adobe.png" alt="Image 2" />
-        <img src="/lib/akamai.jpg" alt="Image 3" />
-        <img src="/lib/bayer.jpg" alt="Image 4" />
-        <img src="/lib/cisko.jpg" alt="Image 5" />
-        <img src="/lib/generali.jpg" alt="Image 6" />
-        <img src="/lib/huawei.png" alt="Image 7" />
-        <img src="/lib/ibm.jpg" alt="Image 8" />
-        <img src="/lib/mastercard.jpg" alt="Image 9" />
-        <img src="/lib/microsoft.jpg" alt="Image 10" />
-        <img src="/lib/neilsen.jpg" alt="Image 11" />
-        <img src="/lib/qualcom.jpg" alt="Image 12" />
-        <img src="/lib/sap.jpg" alt="Image 13" />
-        <img src="/lib/siemens.jpg" alt="Image 14" />
-        <img src="/lib/softlayer.jpg" alt="Image 15" />
-        <img src="/lib/telus.jpg" alt="Image 16" />
-        <img src="/lib/visa.png" alt="Image 17" />
-    </section>
-
-    <section class="settingsSection">
-        <button id="settings" class="settingsBtn"><i class="fa-solid fa-gear"></i></button>
-    </section>
-    <section class="buttonsSection">
-        <button id="checkInButton" class="checkInButton">Check-In</button>
-        <button id="registrationsButton" class="registrationsButton">Registrations</button>
+    <section class="accountButtons">
+        <button id="accountLoginButton" class="accountLoginButton">Log In</button>
+        <button id="accountRegistrationsButton" class="accountRegistrationsButton">Sign In</button>
     </section>
 
     <script>
-        document.getElementById("checkInButton").addEventListener("click", function () {
-            window.location.href = "@Url.Action("CheckIn", "Home")";
+        document.getElementById("accountLoginButton").addEventListener("click", function () {
+            window.location.href = "@Url.Action("Login", "Account")";
         });
 
-        document.getElementById("settings").addEventListener("click", function () {
-            window.location.href = "@Url.Action("Settings", "Admin")";
-        });
-
-        document.getElementById("registrationsButton").addEventListener("click", function () {
-            window.open("https://www.webit.org/festival-europe/tickets.php", "_blank");
+        document.getElementById("accountRegistrationsButton").addEventListener("click", function () {
+            window.location.href = "@Url.Action("CustomerRegistration", "Account")";
         });
     </script>
 </body>

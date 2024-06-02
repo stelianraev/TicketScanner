@@ -8,7 +8,7 @@ namespace CheckIN.Data.Model
         public string CanonicalId { get; set; } = null!;
 
         public string Name { get; set; } = null!;
-
+       
         public virtual ICollection<User>? Users { get; set; }
 
         public virtual ICollection<Event>? Events { get; set; }
