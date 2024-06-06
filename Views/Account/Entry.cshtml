@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="/css/indexstyle.css" type="text/css">
+    <link rel="stylesheet" href="/css/slider.css" type="text/css">
+    <script src="https://kit.fontawesome.com/df3fd09ff3.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <section class="accountButtons">
+        <button id="accountLoginButton" class="accountLoginButton">Log In</button>
+        <button id="accountRegistrationsButton" class="accountRegistrationsButton">Sign In</button>
+    </section>
+
+    <script>
+        document.getElementById("accountLoginButton").addEventListener("click", function () {
+            window.location.href = "@Url.Action("Login", "Account")";
+        });
+
+        document.getElementById("accountRegistrationsButton").addEventListener("click", function () {
+            window.location.href = "@Url.Action("CustomerRegistration", "Account")";
+        });
+    </script>
+</body>
+</html>

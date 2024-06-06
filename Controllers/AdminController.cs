@@ -1,4 +1,8 @@
-﻿using CheckIN.Models;
+﻿using CheckIN.Data.Model;
+using CheckIN.Models;
+using Identity.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CheckIN.Controllers
@@ -6,10 +10,14 @@ namespace CheckIN.Controllers
     public class AdminController : Controller
     {
         private readonly ILogger<AdminController> _logger;
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public AdminController(ILogger<AdminController> logger)
+        public AdminController(ApplicationDbContext context, UserManager<User> userManager, ILogger<AdminController> logger)
         {
             _logger = logger;
+            _context = context;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -22,6 +30,7 @@ namespace CheckIN.Controllers
             {
                 settingsModel.CheckInListId = cookies["CheckInListId"]!;
             }
+            //TODO Remove Tito Settings Must be on AdminLevel
             if (cookies.ContainsKey("TiToToken"))
             {
                 settingsModel.TiToToken = cookies["TiToToken"]!;
@@ -74,6 +83,54 @@ namespace CheckIN.Controllers
             //this.Response.Cookies.Append("PrinterName", settingsModel.PrinterName!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult AdminDashboard()
+        {
+            return this.View();
+        }
+
+        [HttpGet]
+        public IActionResult AdminSettings()
+        {
+            var cookies = this.Request.Cookies;
+            var settingsModel = new SettingsFormModel();
+
+            if (cookies.ContainsKey("TiToToken"))
+            {
+                settingsModel.TiToToken = cookies["TiToToken"]!;
+            }
+           
+            return this.View(settingsModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
+
+            if(customerSettings != null)
+            {
+                customerSettings.TitoToken = adminSettingsModel.TiToToken;
+            }
+            else
+            {
+                var newSettings = new CustomerSettings()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    CustomerId = user!.CustomerId,
+                    TitoToken = adminSettingsModel.TiToToken
+                };
+
+                _context.CustomerSettings.Add(newSettings);
+                await _context.SaveChangesAsync();
+            }
+
+            this.Response.Cookies.Append("TiToToken", adminSettingsModel.TiToToken!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+
+            return this.View();
         }
     }
 }
