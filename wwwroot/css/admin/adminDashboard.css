@@ -1,0 +1,38 @@
+﻿html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.adminPage {
+    display: flex;
+    flex-direction: row;
+    margin: 10px 20px;
+    justify-content: start;
+}
+
+.adminBar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: auto;
+    margin-top: 10rem;
+    ;
+    height: 30rem;
+    padding: 50px;
+    border: 2px solid black;
+}
+
+    .adminBar a {
+        text-decoration: none;
+        color: darkblue;
+        line-height: 40px;
+    }
+
+.admin {
+    display: flex;
+    flex-basis: 100%;
+    justify-content: center;
+    font-size: 4rem;
+}

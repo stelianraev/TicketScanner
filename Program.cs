@@ -110,8 +110,8 @@ namespace CheckIN
                     pattern: "{controller}/{action}/{id}",
                     defaults: new
                     {
-                        controller = "Home",
-                        action = "Index",
+                        controller = "Account",
+                        action = "Entry",
                         id = UrlParameter.Optional,
                     });
             });

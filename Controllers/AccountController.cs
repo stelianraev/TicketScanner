@@ -27,6 +27,12 @@ namespace CheckIN.Controllers
         }
 
         [HttpGet]
+        public IActionResult Entry()
+        {            
+            return View();
+        }
+
+        [HttpGet]
         public IActionResult Login()
         {
             return View();
@@ -46,10 +52,22 @@ namespace CheckIN.Controllers
                     return View(model);
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+                var result = await _signInManager.PasswordSignInAsync(user, model.Password!, false, false);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Login", "Account");
+                    var roles = await _userManager.GetRolesAsync(user);
+
+                    if (roles.Contains("Admin"))
+                    {
+                        return RedirectToAction("AdminDashboard", "Admin");
+                    }
+                    else if (roles.Contains("User"))
+                    {
+                        return RedirectToAction("UserDashboard", "User");
+                    }
+                    // Add more role checks and redirects as necessary
+
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
@@ -57,7 +75,7 @@ namespace CheckIN.Controllers
                 }
             }
 
-            return RedirectToAction("Index", "Home");
+            return this.View(model);
         }
 
         [Authorize]

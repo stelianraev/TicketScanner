@@ -19,6 +19,7 @@ namespace Identity.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<UserEvent> UserEvents { get; set; }
+        public DbSet<CustomerSettings> CustomerSettings { get; set; }
         public DbSet<Attendee> Attendees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CheckIN.Controllers
 {
     [ApiController]
-    [Route("")]
+    [Route("Home")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
