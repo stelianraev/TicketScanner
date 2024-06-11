@@ -1,0 +1,77 @@
+﻿@model UsersViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminPanel</title>
+    <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
+</head>
+<body>
+    <section class="adminPage">
+        <aside class="adminBar">
+            <a href="/Admin/AdminSettings">Settings</a>
+            <a href="/Admin/Events">Events</a>
+            <a href="/Admin/Tickets">Tickets</a>
+            <a href="/Admin/Users">Users</a>
+            <a href="/Admin/Scanner">Scanner</a>
+            <a href="/Admin/Registration">Registration</a>
+            <a href="/Admin/CheckIn">CheckIn</a>
+            <a href="/Admin/Analytics">Analytics</a>
+        </aside>
+
+        <section class="admin">
+            <h1>Users</h1>
+
+            <form asp-action="UserRegistration" asp-controller="Account" method="post" enctype="multipart/form-data">
+                <section class="adminSettings">
+                    <div class="form-group">
+                        <label for="Email">Email:</label>
+                        <input asp-for="NewUser.Email" class="form-control">
+                        <span asp-validation-for="NewUser.Email" class="small text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Password">Password:</label>
+                        <input asp-for="NewUser.Password" class="form-control">
+                        <span asp-validation-for="NewUser.Password" class="small text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="NewUser_Permission">Permission:</label>
+                        <select asp-for="NewUser.Permission" asp-items="Html.GetEnumSelectList<Permission>()" class="form-control"></select>
+                        <span asp-validation-for="NewUser.Permission" class="small text-danger"></span>
+                    </div>
+                </section>
+
+                <button id="save" type="submit">Add User</button>
+            </form>
+
+            <div class="table-container">
+                <table>
+                    @{
+                        @if (Model.Users.Any())
+                        {
+                            <tr>
+                                <th>Email</th>
+                                <th>Permission</th>
+                            </tr>
+
+                            foreach (UserViewModel user in Model.Users)
+                            {
+                                <tr>
+                                    <td>@user.Email</td>
+                                    <td>@user.Permission</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <p>No Users</p>
+                        }
+                    }
+                </table>
+            </div>
+        </section>
+    </section>
+</body>
+</html>

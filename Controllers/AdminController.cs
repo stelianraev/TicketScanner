@@ -1,5 +1,6 @@
 ﻿using CheckIN.Data.Model;
 using CheckIN.Models;
+using CheckIN.Models.ViewModels;
 using Identity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -132,5 +133,28 @@ namespace CheckIN.Controllers
 
             return this.View();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Users()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var users = _context.Users.Where(x => x.CustomerId == currentUser!.CustomerId && x.Id != currentUser.Id).ToList();
+
+            var usersViewModelList = new UsersViewModel();
+            usersViewModelList.Users = new List<UserViewModel>();
+
+            foreach (var user in users)
+            {
+                var tempUsersViewModel = new UserViewModel();
+                tempUsersViewModel.Email = user.Email!;
+                tempUsersViewModel.Password = user.PasswordHash!;
+                tempUsersViewModel.Permission = user.Permision;
+
+                usersViewModelList.Users.Add(tempUsersViewModel);
+            }
+
+            return this.View(usersViewModelList);
+        }
+
     }
 }

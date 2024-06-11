@@ -1,6 +1,7 @@
 ﻿using CheckIN.Models.TITo;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
+using Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -10,15 +11,18 @@ namespace CheckIN.Controllers
     [Route("[Controller]")]
     public class TitoController : Controller
     {
-
         private readonly ILogger<HomeController> _logger;
         private readonly ITiToService _tiToService;
+        private readonly string _titoToken;
+        private readonly ApplicationDbContext _context;
+
         private static TicketViewModel? transferTicketModel;
 
-        public TitoController(ILogger<HomeController> logger, ITiToService tiToService)
+        public TitoController(ITiToService tiToService, ApplicationDbContext context, ILogger<HomeController> logger)
         {
             _tiToService = tiToService;
             _logger = logger;
+            _context = context;
         }
 
         [HttpGet]

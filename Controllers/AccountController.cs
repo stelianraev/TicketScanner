@@ -78,11 +78,11 @@ namespace CheckIN.Controllers
             return this.View(model);
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet]
         public IActionResult UserRegistration()
         {
-            var customerId = GetCurrentTenantId();
+            var customerId = GetCurrentCustomer();
 
             if (String.IsNullOrEmpty(customerId) || String.IsNullOrWhiteSpace(customerId))
             {
@@ -97,25 +97,25 @@ namespace CheckIN.Controllers
             return View(model);
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
-        public async Task<IActionResult> UserRegistration(UserRegistrationViewModel user)
+        public async Task<IActionResult> UserRegistration(UsersViewModel users)
         {
-            var customerId = GetCurrentTenantId();
+            var customerId = GetCurrentCustomer();
 
             if (String.IsNullOrEmpty(customerId) || String.IsNullOrWhiteSpace(customerId))
             {
                 return Unauthorized();
             }
 
-            if (user.Password != user.ConfirmPassword)
-            {
-                ModelState.AddModelError(user.Password, "Passwords does not match");
-            }
+            //if (users.NewUser.Password != users.NewUser.ConfirmPassword)
+            //{
+            //    ModelState.AddModelError(users.NewUser.Password, "Passwords does not match");
+            //}
 
             if(!ModelState.IsValid)
             {
-                return View(user);
+                return View(users.NewUser);
             }
 
             var customer = await _context.Customers.FindAsync(customerId);
@@ -123,18 +123,19 @@ namespace CheckIN.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Invalid customer.");
 
-                return View(user);
+                return View(users.NewUser);
             }
 
             var newUser = new User
             {
-                UserName = user.Email,
-                Email = user.Email,
-                CustomerId = user.CustomerId
+                UserName = users.NewUser.Email,
+                Email = users.NewUser.Email,
+                Permision = users.NewUser.Permission,
+                CustomerId = customerId,
             };
 
 
-          var result = await _userManager.CreateAsync(newUser, user.Password);
+          var result = await _userManager.CreateAsync(newUser, users.NewUser.Password);
 
             if(!result.Succeeded)
             {
@@ -143,10 +144,10 @@ namespace CheckIN.Controllers
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
 
-                return View(user);
+                return View(users.NewUser);
             }
 
-            return RedirectToAction("Index", "Home"); 
+            return RedirectToAction("Admin", "Users"); 
         }
 
         [HttpGet]
@@ -177,7 +178,8 @@ namespace CheckIN.Controllers
             {
                 UserName = customer.Email,
                 Email = customer.Email,
-                CustomerId = newCustomer.CanonicalId
+                CustomerId = newCustomer.CanonicalId,
+                Permision = Permission.Admin
             };
 
             var result = await _userManager.CreateAsync(adminUser, customer.Password);
@@ -203,7 +205,7 @@ namespace CheckIN.Controllers
             return View(customer);
         }
 
-        private string GetCurrentTenantId()
+        private string GetCurrentCustomer()
         {
             var userId = _userManager.GetUserId(User);
             var user = _userManager.FindByIdAsync(userId).Result;
