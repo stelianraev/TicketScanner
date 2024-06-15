@@ -5,11 +5,13 @@ namespace CheckIN.Models.ViewModels
     public class UsersViewModel
     {
         public List<UserViewModel>? Users { get; set; }
-        public UserViewModel NewUser { get; set; }        
+        public UserViewModel NewUser { get; set; }
     }
 
     public class UserViewModel
     {
+        //public string? Id { get; set; }
+
         [Required]
         [EmailAddress]
         public string Email { get; set; }

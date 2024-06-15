@@ -1,5 +1,6 @@
 ﻿using CheckIN.Data.Model;
 using CheckIN.Models.ViewModels;
+using CheckIN.Services;
 using CheckIN.Services.Customer;
 using Identity.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -16,14 +17,16 @@ namespace CheckIN.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly Common _commonHelper;
 
-        public AccountController(ApplicationDbContext context, ICustomerProvider customerProvider, SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public AccountController(ApplicationDbContext context, Common commonHelper, ICustomerProvider customerProvider, SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _customerProvider = customerProvider;
             _signInManager = signInManager;
             _userManager = userManager;
             _roleManager = roleManager;
+            _commonHelper = commonHelper;
         }
 
         [HttpGet]
@@ -61,9 +64,9 @@ namespace CheckIN.Controllers
                     {
                         return RedirectToAction("AdminDashboard", "Admin");
                     }
-                    else if (roles.Contains("User"))
+                    else if (roles.Contains("CheckIn"))
                     {
-                        return RedirectToAction("UserDashboard", "User");
+                        return RedirectToAction("Index", "Home");
                     }
                     // Add more role checks and redirects as necessary
 
@@ -78,8 +81,8 @@ namespace CheckIN.Controllers
             return this.View(model);
         }
 
-        //[Authorize]
         [HttpGet]
+        [Authorize(Roles ="Admin")]
         public IActionResult UserRegistration()
         {
             var customerId = GetCurrentCustomer();
@@ -97,8 +100,8 @@ namespace CheckIN.Controllers
             return View(model);
         }
 
-        //[Authorize]
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UserRegistration(UsersViewModel users)
         {
             var customerId = GetCurrentCustomer();
@@ -113,17 +116,22 @@ namespace CheckIN.Controllers
             //    ModelState.AddModelError(users.NewUser.Password, "Passwords does not match");
             //}
 
-            if(!ModelState.IsValid)
+            var iSUserExist = _context.Users.FirstOrDefault(x => x.Email == users.NewUser.Email);
+
+            if (iSUserExist != null)
             {
-                return View(users.NewUser);
-            }
+                ModelState.AddModelError("Users", "This email is already used");
+            }                      
 
             var customer = await _context.Customers.FindAsync(customerId);
             if (customer == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid customer.");
+            }
 
-                return View(users.NewUser);
+            if (!ModelState.IsValid)
+            {
+                return View(users);
             }
 
             var newUser = new User
@@ -134,8 +142,14 @@ namespace CheckIN.Controllers
                 CustomerId = customerId,
             };
 
+            if (!await _roleManager.RoleExistsAsync(users.NewUser.Permission.ToString()))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(users.NewUser.Permission.ToString()));
+            }
 
-          var result = await _userManager.CreateAsync(newUser, users.NewUser.Password);
+            await _userManager.AddToRoleAsync(newUser, users.NewUser.Permission.ToString());
+
+            var result = await _userManager.CreateAsync(newUser, users.NewUser.Password);
 
             if(!result.Succeeded)
             {
@@ -147,7 +161,7 @@ namespace CheckIN.Controllers
                 return View(users.NewUser);
             }
 
-            return RedirectToAction("Admin", "Users"); 
+            return RedirectToAction("Users", "Admin"); 
         }
 
         [HttpGet]
@@ -186,12 +200,12 @@ namespace CheckIN.Controllers
 
             if (result.Succeeded)
             {
-                if (!await _roleManager.RoleExistsAsync("Admin"))
+                if (!await _roleManager.RoleExistsAsync(Permission.Admin.ToString()))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                    await _roleManager.CreateAsync(new IdentityRole(Permission.Admin.ToString()));
                 }
 
-                await _userManager.AddToRoleAsync(adminUser, "Admin");
+                await _userManager.AddToRoleAsync(adminUser, Permission.Admin.ToString());
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Index", "Home");
@@ -210,6 +224,47 @@ namespace CheckIN.Controllers
             var userId = _userManager.GetUserId(User);
             var user = _userManager.FindByIdAsync(userId).Result;
             return user.CustomerId;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditUser(string id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+
+            var userViewModel = new UserViewModel();
+            userViewModel.Email = user.Email;
+            userViewModel.Permission = user.Permision;
+
+            return this.View(userViewModel);
+
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditUser(UserViewModel userModel)
+        {
+            if(!ModelState.IsValid)
+            {
+                return this.View(userModel);
+            }
+
+            var user = _context.Users.FirstOrDefault(x => x.Id == userModel.Id);
+
+            if(user == null)
+            {
+                return this.View(userModel);
+            }
+
+            user.Email = userModel.Email;
+
+            user.PasswordHash = userModel.Password != null ? _commonHelper.PasswordHash(userModel.Password) : user.PasswordHash;
+            //user.PasswordHash = _commonHelper.PasswordHash(userModel.Password);
+            user.Permision = userModel.Permission;
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Users", "Admin");
         }
     }
 }

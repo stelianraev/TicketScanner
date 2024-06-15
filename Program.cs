@@ -7,6 +7,7 @@ using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
+using System.Security.Claims;
 using System.Web.Mvc;
 
 namespace CheckIN
@@ -24,11 +25,11 @@ namespace CheckIN
             Configure(app, builder.Environment);
 
             var logger = app.Services.GetRequiredService<ILogger<TiToService>>();
-            logger.LogInformation("MediaEncoderService starting...");
+            logger.LogInformation("TitoService starting...");
 
             await app.RunAsync();
 
-            logger.LogError("MediaEncoderService stopped!");
+            logger.LogError("TitoService stopped!");
 
         }
         private static void ConfigureServices(WebApplicationBuilder builder)
@@ -50,18 +51,41 @@ namespace CheckIN
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<User>(options =>
+            //builder.Services.AddDefaultIdentity<User>(options =>
+            //{
+            //    options.SignIn.RequireConfirmedAccount = false;
+            //    options.Password.RequireDigit = false;
+            //    options.Password.RequireUppercase = false;
+            //    options.Password.RequireLowercase = false;
+            //    options.Password.RequireNonAlphanumeric = false;
+            //    options.Password.RequiredLength = 0;
+            //    options.ClaimsIdentity.RoleClaimType = "role";
+            //})
+            //    .AddRoles<IdentityRole>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
+
+
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
-                options.SignIn.RequireConfirmedAccount = false;
                 options.Password.RequireDigit = false;
-                options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
                 options.Password.RequiredLength = 0;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(0);
+                options.Lockout.MaxFailedAccessAttempts = 0;
+                options.Lockout.AllowedForNewUsers = false;
+                options.User.RequireUniqueEmail = false;
             })
-                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                options.ClaimsIdentity.RoleClaimType = ClaimTypes.Role;
+            });
+
 
             builder.Services.AddControllersWithViews();
             //    options =>
@@ -73,8 +97,10 @@ namespace CheckIN
             builder.Services.AddHttpClient();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddSingleton<Common>();
             builder.Services.AddSingleton<ITiToService, TiToService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
+
         }
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -88,16 +114,16 @@ namespace CheckIN
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-
+                        
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseHsts();
             app.UseRouting();
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
 
             //custom middleware
-            app.UseCustomerMiddleware();
+            //app.UseCustomerMiddleware();
 
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -115,6 +141,24 @@ namespace CheckIN
                         id = UrlParameter.Optional,
                     });
             });
+        }
+
+
+        //future
+        private static async Task CreateRoles(IServiceProvider serviceProvider)
+        {
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            string[] roleNames = { "Admin" };
+            IdentityResult roleResult;
+
+            foreach (var roleName in roleNames)
+            {
+                var roleExist = await roleManager.RoleExistsAsync(roleName);
+                if (!roleExist)
+                {
+                    roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
         }
     }
 }
