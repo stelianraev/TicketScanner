@@ -1,12 +1,15 @@
 ﻿using CheckIN.Data.Model;
 using CheckIN.Models;
+using CheckIN.Models.ViewModels;
 using Identity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CheckIN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly ILogger<AdminController> _logger;
@@ -54,10 +57,10 @@ namespace CheckIN.Controllers
         [HttpPost]
         public IActionResult Settings(SettingsFormModel settingsModel)
         {
-            if (settingsModel.CheckInListId == null)
-            {
-                this.ModelState.AddModelError("CheckInListId", "Please fill valid CheckInListId from ti.to");
-            }
+            //if (settingsModel.CheckInListId == null)
+            //{
+            //    this.ModelState.AddModelError("CheckInListId", "Please fill valid CheckInListId from ti.to");
+            //}
             if (settingsModel.TiToToken == null)
             {
                 this.ModelState.AddModelError("Token", "Please fill valid Token from ti.to");
@@ -76,7 +79,7 @@ namespace CheckIN.Controllers
                 return View(settingsModel);
             }
 
-            this.Response.Cookies.Append("CheckInListId", settingsModel.CheckInListId!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0)});
+            //this.Response.Cookies.Append("CheckInListId", settingsModel.CheckInListId!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0)});
             this.Response.Cookies.Append("TiToToken", settingsModel.TiToToken!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedCameraId", settingsModel.SelectedCameraId!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedCameraLabel", settingsModel.SelectedCameraLabel!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
@@ -86,12 +89,15 @@ namespace CheckIN.Controllers
         }
 
         [HttpGet]
+        //[Authorize(Roles = "Admin")]
         public IActionResult AdminDashboard()
         {
+            var a = User.FindAll(ClaimTypes.Role).ToList();
             return this.View();
         }
 
         [HttpGet]
+        //[Authorize(Roles = "Admin")]
         public IActionResult AdminSettings()
         {
             var cookies = this.Request.Cookies;
@@ -106,6 +112,7 @@ namespace CheckIN.Controllers
         }
 
         [HttpPost]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -132,5 +139,30 @@ namespace CheckIN.Controllers
 
             return this.View();
         }
+
+        [HttpGet]
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Users()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var users = _context.Users.Where(x => x.CustomerId == currentUser!.CustomerId && x.Id != currentUser.Id).ToList();
+
+            var usersViewModelList = new UsersViewModel();
+            usersViewModelList.Users = new List<UserViewModel>();
+
+            foreach (var user in users)
+            {
+                var tempUsersViewModel = new UserViewModel();
+                tempUsersViewModel.Email = user.Email!;
+                tempUsersViewModel.Password = user.PasswordHash!;
+                tempUsersViewModel.Permission = user.Permision;
+                tempUsersViewModel.Id = user.Id;
+
+                usersViewModelList.Users.Add(tempUsersViewModel);
+            }
+
+            return this.View(usersViewModelList);
+        }       
+
     }
 }

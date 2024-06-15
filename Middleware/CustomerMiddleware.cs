@@ -14,10 +14,10 @@ namespace CheckIN.Middleware
         public async Task InvokeAsync(HttpContext context, ICustomerProvider customerProvider)
         {
             var host = context.Request.Host.Host;
-            var tenant = host.Split('.')[0];
-            var tenantId = GetCustomerIdFromSubdomain(tenant);
+            var customer = host.Split('.')[0];
+            var customerId = GetCustomerIdFromSubdomain(customer);
 
-            customerProvider.SetCustomerId(tenantId);
+            customerProvider.SetCustomerId(customerId);
 
             await _next(context);
         }

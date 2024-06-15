@@ -2,7 +2,7 @@
 {
     public interface ICustomerProvider
     {
-        string GetTenantId();
+        string GetCustomerId();
 
         void SetCustomerId(int customerId);
     }

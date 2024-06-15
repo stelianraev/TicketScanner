@@ -9,7 +9,7 @@
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public string GetTenantId()
+        public string GetCustomerId()
         {
             // Extract tenant ID from the request (e.g., from JWT token or subdomain)
             var customerId = _httpContextAccessor.HttpContext!.User.FindFirst("CustomerId")?.Value;

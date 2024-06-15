@@ -1,0 +1,40 @@
+﻿@model UserViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminPanel</title>
+    <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
+</head>
+<body>
+        <section class="admin">
+            <h1>Edit User</h1>
+
+        <form method="post" enctype="multipart/form-data">
+                <section class="adminSettings">
+                    <div class="form-group">
+                        <label for="Email">Email:</label>
+                        <input asp-for="Email" class="form-control">
+                        <span asp-validation-for="Email" class="small text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Password">New Password:</label>
+                        <input asp-for="Password" class="form-control">
+                        <span asp-validation-for="Password" class="small text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="NewUser_Permission">Permission:</label>
+                        <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>()" class="form-control"></select>
+                        <span asp-validation-for="Permission" class="small text-danger"></span>
+                    </div>
+                </section>
+
+                <button id="save" type="submit">Save</button>
+            </form>
+
+            <button asp-action="Users" asp-controller="Admin">Cancel</button>
+        </section>
+</body>
+</html>
