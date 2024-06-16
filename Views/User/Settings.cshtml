@@ -1,4 +1,12 @@
 ﻿@model SettingsFormModel
+@using CheckIN.Data.Model
+@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<User> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,25 +14,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/settings.css" type="text/css">
-
     <title>Settings</title>
 </head>
-<body>
+<body>   
+
+    @if (user!.Permision == Permission.Admin)
+    {
+     <aside class="adminBar">
+         <a href="/Admin/AdminSettings">Settings</a>
+         <a href="/Admin/Events">Events</a>
+         <a href="/Admin/Tickets">Tickets</a>
+         <a href="/Admin/Users">Users</a>
+         <a href="/Admin/Scanner">Scanner</a>
+         <a href="/Admin/Registration">Registration</a>
+         <a href="/Admin/CheckIn">CheckIn</a>
+         <a href="/Admin/Analytics">Analytics</a>
+     </aside>
+    }
+
     <section class="settings">
-        <form method="post" type="multipart/form-data">
-            <section class="titoSettings">
-                <div class="form-group">
-                    <label asp-for="CheckInListId">CheckInNumber</label>
-                    <input asp-for="CheckInListId" class="form-control">
-                    <span asp-validation-for="CheckInListId" class="small text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="TiToToken">Token</label>
-                    <input asp-for="TiToToken" class="form-control">
-                    <span asp-validation-for="TiToToken" class="small text-danger"></span>
-                </div>
-
+        <form id="settingsForm" method="post">
+            <section class="userDeviceSettings">
                 <div>
                     <input type="hidden" asp-for="SelectedCameraId" id="selectedCameraId">
                     <input type="hidden" asp-for="SelectedCameraLabel" id="selectedCameraLabel">
@@ -33,11 +43,6 @@
 
             <section class="printerSettings">
                 <div>
-                    @* <h1>Select a Printer:</h1>
-                    <select asp-for="PrinterName" id="printerList" class="form-control">
-                    <option value="" selected>Select Printer</option>
-                    </select>
-                    <span asp-validation-for="PrinterName" class="small text-danger"></span> *@
                     <label>Printer Settings</label>
                     <button id="printer">Printer Settings</button>
                 </div>
@@ -59,22 +64,19 @@
             <button id="save" type="submit">Save</button>
         </form>
     </section>
-    @* test *@
-   @*  <div id="cameraId"></div> *@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             populateCameraList();
-            //discoverPrinters();
             printerSettings();
+            attachFormSubmitHandler();
         });
 
         function printerSettings() {
-            document.getElementById('printer').addEventListener('click', function () {
+            document.getElementById('printer').addEventListener('click', function (event) {
                 event.preventDefault();
-
                 window.print();
-            })
+            });
         }
 
         function populateCameraList() {
@@ -87,7 +89,7 @@
                             devices.forEach(device => {
                                 if (device.kind === "videoinput") {
                                     var option = document.createElement('option');
-                                    option.text = device.label + ' Id:' + device.deviceId || 'Camera ' + (select.length + 1)
+                                    option.text = device.label + ' Id:' + device.deviceId || 'Camera ' + (select.length + 1);
                                     option.value = device.deviceId;
                                     select.appendChild(option);
                                 }
@@ -105,18 +107,11 @@
                 });
         }
 
-        // Function to start the selected camera and update SelectedCameraId
         function startCamera() {
             var cameraSelect = document.getElementById("cameraSelect");
             var selectedCameraId = cameraSelect.value;
             var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
             var constraints = { video: { deviceId: selectedCameraId } };
-
-            //test
-            // var el = document.getElementById('cameraId');
-            // var newEl = document.createElement('span');
-            // newEl.textContent = JSON.stringify(constraints);
-            // el.appendChild(newEl);
 
             navigator.mediaDevices.getUserMedia(constraints)
                 .then(stream => {
@@ -132,48 +127,17 @@
                 });
         }
 
-        // Discover printers
-        // function discoverPrinters() {
-        //     fetch('/Printer/GetPrinters')
-        //         .then(response => response.json())
-        //         .then(printers => {
-        //             const printerSelect = document.getElementById('printerList');
-        //             printers.forEach(printer => {
-        //                 var option = document.createElement('option');
-        //                 option.text = printer
-        //                 option.value = printer;
-        //                 printerSelect.appendChild(option);
-        //             });
-        //         })
-        //         .catch(error => console.error('Failed to fetch printers', error));
-        // }
+        function attachFormSubmitHandler() {
+            var form = document.getElementById('settingsForm');
+            form.addEventListener('submit', function (event) {
+                var cameraSelect = document.getElementById("cameraSelect");
+                var selectedCameraId = cameraSelect.value;
+                var selectedCameraLabel = cameraSelect.options[cameraSelect.selectedIndex].text;
 
-        // async function discoverPrinters() {
-        //     const printerList = document.getElementById('printerList');
-
-        //     try {
-        //         // Discover USB printers
-        //         const usbDevices = await navigator.usb.getDevices();
-        //         usbDevices.forEach(device => {
-        //             const listItem = document.createElement('li');
-        //             listItem.textContent = `USB Printer: ${device.productName}`;
-        //             printerList.appendChild(listItem);
-        //         });
-        //     } catch (error) {
-        //         console.error('Error discovering USB printers:', error);
-        //     }
-
-        //     try {
-        //         const devices = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-        //         devices.forEach(device => {
-        //             const listItem = document.createElement('li');
-        //             listItem.textContent = `Bluetooth Printer: ${device.name}`;
-        //             printerList.appendChild(listItem);
-        //         });
-        //     } catch (error) {
-        //         console.error('Error discovering Bluetooth printers:', error);
-        //     }
-        // }
+                document.getElementById("selectedCameraId").value = selectedCameraId;
+                document.getElementById("selectedCameraLabel").value = selectedCameraLabel;
+            });
+        }
     </script>
 </body>
 </html>

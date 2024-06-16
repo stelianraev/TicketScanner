@@ -10,7 +10,7 @@ namespace CheckIN.Models.ViewModels
 
     public class UserViewModel
     {
-        //public string? Id { get; set; }
+        public string? Id { get; set; }
 
         [Required]
         [EmailAddress]

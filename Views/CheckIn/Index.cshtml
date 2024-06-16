@@ -1,4 +1,14 @@
-﻿<!DOCTYPE html>
+﻿@using CheckIN.Data.Model
+@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<User> UserManager
+
+@{
+    ViewData["Title"] = "Home Page";
+    var user = await UserManager.GetUserAsync(User);
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -33,17 +43,26 @@
         <button id="settings" class="settingsBtn"><i class="fa-solid fa-gear"></i></button>
     </section>
     <section class="buttonsSection">
-        <button id="checkInButton" class="checkInButton">Check-In</button>
-        <button id="registrationsButton" class="registrationsButton">Registrations</button>
+
+        @if (user.Permision == Permission.Checker || user.Permision == Permission.Admin)
+        {
+            <button id="checkInButton" class="checkInButton">Check-In</button>
+            <button id="registrationsButton" class="registrationsButton">Registrations</button>
+        }
+        @if(user.Permision == Permission.Scanner || user.Permision == Permission.Admin)
+        {
+            <button id="Scanning" class="scanning">Scanning</button>
+        }
+
     </section>
 
     <script>
         document.getElementById("checkInButton").addEventListener("click", function () {
-            window.location.href = "@Url.Action("CheckIn", "Home")";
+            window.location.href = "@Url.Action("CheckIn", "CheckIn")";
         });
 
         document.getElementById("settings").addEventListener("click", function () {
-            window.location.href = "@Url.Action("Settings", "Admin")";
+            window.location.href = "@Url.Action("Settings", "User")";
         });
 
         document.getElementById("registrationsButton").addEventListener("click", function () {

@@ -7,5 +7,6 @@
         public Customer Customer { get; set; }
 
         public string TitoToken { get; set; }
+        public virtual ICollection<TitoAccount>? TitoAccounts { get; set; }
     }
 }

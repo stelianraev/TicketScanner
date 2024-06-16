@@ -15,7 +15,7 @@ html, body {
     padding: 0rem;
 }
 
-.titoSettings {
+.userDeviceSettings {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -23,13 +23,13 @@ html, body {
     gap: 20px
 }
 
-    .titoSettings .form-control {
-        display: flex;
-        flex-direction: row;
-        margin-right: 20px;
-        width: 100%;
-        max-width: 50rem;
-    }
+.userDeviceSettings .form-control {
+    display: flex;
+    flex-direction: row;
+    margin-right: 20px;
+    width: 100%;
+    max-width: 50rem;
+}
 
 .printerSettings {
     display: flex;
@@ -65,6 +65,23 @@ html, body {
     max-width: 30%;
 }
 
+.adminBar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: auto;
+    margin-top: 10rem;
+    height: 30rem;
+    padding: 50px;
+    border: 2px solid black;
+}
+
+.adminBar a {
+    text-decoration: none;
+    color: darkblue;
+    line-height: 40px;
+}
+
 #save {
     display: flex;
     width: 90%;
@@ -75,12 +92,12 @@ html, body {
 }
 
 @media (max-width: 480px) { /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
-    .titoSettings .form-control,
+    .userDeviceSettings .form-control,
     #cameraSelect {
         width: 100%; /* Adjusted width to 100% for better responsiveness */
     }
 
-    .titoSettings {
+    .userDeviceSettings {
         gap: 20px; /* Adjusted gap for better spacing on small screens */
         margin-left: 5%; /* Adjusted margin for better spacing on small screens */
     }
@@ -98,19 +115,19 @@ html, body {
 
 @media (min-width: 480px) and (orientation: landscape) { /* smartphones, Android phones, landscape iPhone */
 
-    .titoSettings, .printerSettings, .selectCamera, .videoSection {
+    .userDeviceSettings, .printerSettings, .selectCamera, .videoSection {
         margin-left: 5%; /* Adjusted margin for better spacing in landscape mode */
         margin-right: 5%; /* Added right margin for better spacing in landscape mode */
     }
 
-        .titoSettings .form-control,
+        .userDeviceSettings .form-control,
         #cameraSelect {
             width: 100%; /* Adjusted width to 100% for better responsiveness in landscape mode */
         }
 }
 
 @media (min-width: 600px) { /* portrait tablets, portrait iPad, e-readers (Nook/Kindle), landscape 800x480 phones (Android) */
-    .titoSettings .form-control,
+    .userDeviceSettings .form-control,
     #cameraSelect {
         width: 80%;
         margin-bottom: 0px;
@@ -142,8 +159,8 @@ html, body {
         width: 100%;
     }
 
-    .titoSettings {
-        margin-top:2px;
+    .userDeviceSettings {
+        margin-top: 2px;
         gap: 7px;
     }
 
@@ -180,7 +197,7 @@ html, body {
         margin-left: 10px;
     }
 
-    .titoSettings {
+    .userDeviceSettings {
         margin-top: 10px;
         gap: 12px;
     }
