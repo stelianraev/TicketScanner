@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
 using System.Security.Claims;
-using System.Web.Mvc;
 
 namespace CheckIN
 {
@@ -114,7 +113,7 @@ namespace CheckIN
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-                        
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseHsts();
@@ -132,15 +131,22 @@ namespace CheckIN
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    //pattern: "{controller=Home}/{action=Index}/{id?}",
-                    pattern: "{controller}/{action}/{id}",
-                    defaults: new
-                    {
-                        controller = "Account",
-                        action = "Entry",
-                        id = UrlParameter.Optional,
-                    });
+                    pattern: "{controller=Account}/{action=Entry}/{id?}");
             });
+
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllerRoute(
+            //        name: "default",
+            //        //pattern: "{controller=Home}/{action=Index}/{id?}",
+            //        pattern: "{controller}/{action}/{id}",
+            //        defaults: new
+            //        {
+            //            controller = "Account",
+            //            action = "Entry",
+            //            id = UrlParameter.Optional,
+            //        });
+            //});
         }
 
 

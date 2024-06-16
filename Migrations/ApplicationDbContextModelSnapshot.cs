@@ -4,19 +4,16 @@ using Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Identity.Data.Migrations
+namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240530235320_initial")]
-    partial class initial
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,6 +92,26 @@ namespace Identity.Data.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.CustomerSettings", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TitoToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("CustomerSettings");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
                     b.Property<string>("EventId")
@@ -114,9 +131,15 @@ namespace Identity.Data.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("TitoAccountId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("EventId");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("TitoAccountId");
 
                     b.ToTable("Events");
                 });
@@ -131,12 +154,31 @@ namespace Identity.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("TicketId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CustomerSettingsId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerSettingsId");
+
+                    b.ToTable("TitoAccounts");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>
@@ -178,6 +220,9 @@ namespace Identity.Data.Migrations
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Permision")
+                        .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
@@ -327,12 +372,10 @@ namespace Identity.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -369,12 +412,10 @@ namespace Identity.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -391,6 +432,17 @@ namespace Identity.Data.Migrations
                         .HasForeignKey("TicketId");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.CustomerSettings", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
                     b.HasOne("CheckIN.Data.Model.Customer", "Customer")
@@ -399,7 +451,26 @@ namespace Identity.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CheckIN.Data.Model.TitoAccount", "TitoAccount")
+                        .WithMany("Events")
+                        .HasForeignKey("TitoAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Customer");
+
+                    b.Navigation("TitoAccount");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.CustomerSettings", "CustomerSettings")
+                        .WithMany("TitoAccounts")
+                        .HasForeignKey("CustomerSettingsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomerSettings");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>
@@ -505,6 +576,11 @@ namespace Identity.Data.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.CustomerSettings", b =>
+                {
+                    b.Navigation("TitoAccounts");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
                     b.Navigation("UserEvents");
@@ -513,6 +589,11 @@ namespace Identity.Data.Migrations
             modelBuilder.Entity("CheckIN.Data.Model.Ticket", b =>
                 {
                     b.Navigation("Attendees");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>

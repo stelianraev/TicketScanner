@@ -1,4 +1,5 @@
 ﻿using CheckIN.Configuration;
+using CheckIN.Models.TITo;
 using Microsoft.Extensions.Options;
 
 namespace CheckIN.Services
@@ -11,6 +12,50 @@ namespace CheckIN.Services
         {
             _tiToConfiguration = titoConfiguration.Value;
         }
+
+        public async Task<string> Connect (string titoToken)
+        {
+            string url = _tiToConfiguration.BaseUrl + "hello";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> GetEvents(string titoToken, string accountSlug)
+        {
+            string url = _tiToConfiguration.BaseUrl + accountSlug + "/events";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+
         public async Task<string> GetTicketAsync(string titoToken, string checkInListId, string ticketId)
         {
             string endpoint = checkInListId + "/tickets/" + ticketId;
@@ -18,7 +63,7 @@ namespace CheckIN.Services
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            request.Headers.Add("Authorization", titoToken);
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
             request.Headers.Add("Accept", "application/json");
 
             var response = await _httpClient.SendAsync(request);
@@ -42,7 +87,7 @@ namespace CheckIN.Services
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
-            request.Headers.Add("Authorization", titoToken);
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
             request.Headers.Add("Accept", "application/json");
 
             var response = await _httpClient.GetAsync(url);

@@ -1,21 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CheckIN.Models.TITo;
+using System.ComponentModel.DataAnnotations;
 
 namespace CheckIN.Models
 {
-    public class SettingsFormModel
+    public class SettingsFormModel : DeviceSettings
     {
-        [Required(ErrorMessage = "Please enter a valid token from ti.to")]
-        [Display(Name = "Token")]
-        public string TiToToken { get; set; }
+        public TitoSettings? TitoSettings { get; set; }
 
-        [Required(ErrorMessage = "Please enter a valid CheckInNumber")]
-        [Display(Name = "CheckInNumber")]
-        public string CheckInListId { get; set; }
-
-        [Required(ErrorMessage = "Please select a camera.")]
-        [Display(Name = "Camera")]
-        public string SelectedCameraId { get; set; }
-        public string SelectedCameraLabel { get; set; }
+        //[Required(ErrorMessage = "Please enter a valid CheckInNumber")]
+        //[Display(Name = "CheckInNumber")]
+        //public string CheckInListId { get; set; }
 
         //public string? PrinterName { get; set; } 
 

@@ -21,6 +21,7 @@ namespace Identity.Data
         public DbSet<UserEvent> UserEvents { get; set; }
         public DbSet<CustomerSettings> CustomerSettings { get; set; }
         public DbSet<Attendee> Attendees { get; set; }
+        public DbSet<TitoAccount> TitoAccounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {         
@@ -37,6 +38,16 @@ namespace Identity.Data
                 .HasOne(ue => ue.Event)
                 .WithMany(e => e.UserEvents)
                 .HasForeignKey(ue => ue.EventId);
+
+            builder.Entity<TitoAccount>()
+                .HasOne(c => c.CustomerSettings)
+                .WithMany(cu => cu.TitoAccounts)
+                .HasForeignKey(c => c.CustomerSettingsId);
+
+            builder.Entity<Event>()
+                .HasOne(a => a.TitoAccount)
+                .WithMany(ac => ac.Events)
+                .HasForeignKey(a => a.TitoAccountId);
 
             base.OnModelCreating(builder);
         }

@@ -23,19 +23,84 @@
         </aside>
 
         <section class="admin">
-            <h1>Settings</h1>
+            <h1>Connect with:</h1>
 
-            <form method="post" type="multipart/form-data">
-                <section class="adminSettings">
-                    <div class="form-group">
-                        <input asp-for="TiToToken" class="form-control">
-                        <span asp-validation-for="TiToToken" class="small text-danger"></span>
-                    </div>
-                </section>
-
-                <button id="save" type="submit">Connect</button>
-            </form>
+            <section class="adminSettings">
+                <div class="form-group">
+                    <label for="maskedTokenInput">Current Token:</label>
+                    <input type="text" id="maskedTokenInput" class="form-control" value="************" readonly/>
+                    <button type="button" id="loginWithTitoBtn">Update ti.to token</button>
+                </div>
+            </section>
         </section>
+
+        <div id="titoModel" class="model">
+            <div class="model-content">
+                <span class="close">&times;</span>
+                <h2>Enter Tito Token</h2>
+                <form id="titoForm" method="post" type="multipart/form-data">
+                    <section class="adminSettings">
+                        <div class="form-group">                           
+                            <input id="titoTokenInput" asp-for="TitoSettings.Token" type="password" class="form-control">
+                            <span asp-validation-for="TitoSettings.Token" class="small text-danger"></span>
+                            <input type="button" id="titoSubmitButton" value="Update">
+                            <div id="errorMessage" class="small text-danger"></div>
+                        </div>
+                    </section>
+                </form>
+                <div id="error-message" class="small text-danger"></div>
+            </div>
+        </div>
     </section>
+    <script>
+        var model = document.getElementById("titoModel");
+        var btn = document.getElementById("loginWithTitoBtn");
+        var span = document.getElementsByClassName("close")[0];
+        var form = document.getElementById("titoForm");
+        var errorMessage = document.getElementById("error-message");
+
+        btn.onclick = function () {
+            model.style.display = "block";
+        }
+
+        span.onclick = function () {
+            model.style.display = "none";
+        }
+
+        window.onclick = function (event) {
+            if (event.target == model) {
+                model.style.display = "none";
+            }
+        }
+
+        document.getElementById('titoSubmitButton').onclick = connectToTito;
+
+        async function connectToTito(event) {
+            debugger;
+            event.preventDefault();
+            const token = document.getElementById("titoTokenInput").value;
+            const errorMessage = document.getElementById("errorMessage");
+
+            try {
+                const response = await fetch('/Tito/Connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ Token: token, IsRevoked: true })
+                });
+
+                if (response.ok) {
+                    window.location.href = '/Admin/AdminSettings';
+                } else {
+                    const result = await response.json();
+                    errorMessage.textContent = result.error || "Please try with a valid token.";
+                }
+            } catch (error) {
+                errorMessage.textContent = "An error occurred. Please try again.";
+            }
+        }
+
+    </script>
 </body>
 </html>

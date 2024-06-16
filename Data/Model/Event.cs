@@ -16,6 +16,10 @@ namespace CheckIN.Data.Model
 
         public DateTime EndDate { get; set; }
 
+        public string TitoAccountId {  get; set; }
+
+        public TitoAccount TitoAccount { get; set; }
+
         public virtual ICollection<UserEvent> UserEvents { get; set; }
 
         public virtual ICollection<Ticket> Tickets { get; set; }

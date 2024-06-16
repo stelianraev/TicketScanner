@@ -1,0 +1,91 @@
+﻿@model TitoSettings
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login With</title>
+    <link rel="stylesheet" href="/css/admin/loginWith.css" type="text/css">
+</head>
+<body>
+    <section class="admin">
+        <h1>Connect with:</h1>
+
+        <section class="adminSettings">
+            <div class="form-group">
+                <button type="button" id="loginWithTitoBtn">Login with Tito</button>
+            </div>
+        </section>
+    </section>
+
+    <div id="titoModel" class="model">
+        <div class="model-content">
+            <span class="close">&times;</span>
+            <h2>Enter Tito Token</h2>
+            <form id="titoForm" method="post" type="multipart/form-data">
+                <section class="adminSettings">
+                    <div class="form-group">
+                        <input type="button" id="titoSubmitButton" value="Login with Tito">
+                        <input id="titoTokenInput" asp-for="Token" class="form-control">
+                        <span asp-validation-for="Token" class="small text-danger"></span>
+                        <div id="errorMessage" class="small text-danger"></div>
+                    </div>
+                </section>
+            </form>
+            <div id="error-message" class="small text-danger"></div>
+        </div>
+    </div>
+
+    <script>
+        var model = document.getElementById("titoModel");
+        var btn = document.getElementById("loginWithTitoBtn");
+        var span = document.getElementsByClassName("close")[0];
+        var form = document.getElementById("titoForm");
+        var errorMessage = document.getElementById("error-message");
+
+        btn.onclick = function () {
+            model.style.display = "block";
+        }
+
+        span.onclick = function () {
+            model.style.display = "none";
+        }
+
+        window.onclick = function (event) {
+            if (event.target == model) {
+                model.style.display = "none";
+            }
+        }
+
+        document.getElementById('titoSubmitButton').onclick = connectToTito;
+
+        async function connectToTito(event) {
+            debugger;
+            event.preventDefault();
+            const token = document.getElementById("titoTokenInput").value;
+            const errorMessage = document.getElementById("errorMessage");
+
+            try {
+                const response = await fetch('/Tito/Connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ Token: token })
+                });
+
+                if (response.ok) {
+                    window.location.href = '/Admin/AdminSettings';
+                } else {
+                    const result = await response.json();
+                    errorMessage.textContent = result.error || "Please try with a valid token.";
+                }
+            } catch (error) {
+                errorMessage.textContent = "An error occurred. Please try again.";
+            }
+        }
+
+    </script>
+</body>
+</html>

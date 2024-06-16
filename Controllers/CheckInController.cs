@@ -1,17 +1,19 @@
-using CheckIN.Models;
+using CheckIN.Data.Model;
 using CheckIN.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CheckIN.Controllers
 {
     [ApiController]
-    [Route("Home")]
-    public class HomeController : Controller
+    [Route("CheckIn")]
+    public class CheckInController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<CheckInController> _logger;
         private readonly ITiToService _tiToService;
 
-        public HomeController(ILogger<HomeController> logger, ITiToService tiToService)
+        public CheckInController(ILogger<CheckInController> logger, ITiToService tiToService)
         {
             _tiToService = tiToService;
             _logger = logger;

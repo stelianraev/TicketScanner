@@ -1,4 +1,5 @@
 ﻿using CheckIN.Data.Model;
+using CheckIN.Models.TITo;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using CheckIN.Services.Customer;
@@ -60,14 +61,30 @@ namespace CheckIN.Controllers
                 {
                     var roles = await _userManager.GetRolesAsync(user);
 
-                    if (roles.Contains("Admin"))
+                    if (roles.Contains(Permission.Admin.ToString()))
                     {
-                        return RedirectToAction("AdminDashboard", "Admin");
+                        var token = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user.CustomerId);
+
+                        if(token.TitoToken != null)
+                        {
+                            //TitoSettings settings = new TitoSettings();
+                            //settings.Token = token.TitoToken;
+
+                            //return RedirectToAction("LoginWith", "Admin", settings);
+                            return RedirectToAction("AdminSettings", "Admin");
+                        }
+
+                        return RedirectToAction("LoginWith", "Admin");
                     }
-                    else if (roles.Contains("CheckIn"))
+                    else if (roles.Contains(Permission.Checker.ToString()))
                     {
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("Index", "CheckIn");
                     }
+                    else if (roles.Contains(Permission.Scanner.ToString()))
+                    {
+
+                    }
+
                     // Add more role checks and redirects as necessary
 
                     return RedirectToAction("Index", "Home");
@@ -142,16 +159,21 @@ namespace CheckIN.Controllers
                 CustomerId = customerId,
             };
 
-            if (!await _roleManager.RoleExistsAsync(users.NewUser.Permission.ToString()))
-            {
-                await _roleManager.CreateAsync(new IdentityRole(users.NewUser.Permission.ToString()));
-            }
-
-            await _userManager.AddToRoleAsync(newUser, users.NewUser.Permission.ToString());
-
             var result = await _userManager.CreateAsync(newUser, users.NewUser.Password);
 
-            if(!result.Succeeded)
+            if (result.Succeeded)
+            {
+                if (!await _roleManager.RoleExistsAsync(users.NewUser.Permission.ToString()))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(users.NewUser.Permission.ToString()));
+                }
+
+                await _userManager.AddToRoleAsync(newUser, users.NewUser.Permission.ToString());
+
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Users", "Admin");
+            }
+            else
             {
                 foreach (var error in result.Errors)
                 {
@@ -160,8 +182,6 @@ namespace CheckIN.Controllers
 
                 return View(users.NewUser);
             }
-
-            return RedirectToAction("Users", "Admin"); 
         }
 
         [HttpGet]
@@ -208,7 +228,7 @@ namespace CheckIN.Controllers
                 await _userManager.AddToRoleAsync(adminUser, Permission.Admin.ToString());
 
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Login", "Account");
             }
 
             foreach (var error in result.Errors)
