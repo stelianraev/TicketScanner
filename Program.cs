@@ -42,6 +42,7 @@ namespace CheckIN
                     options.ColorBehavior = LoggerColorBehavior.Enabled;
                 });
             }
+
             builder.Services.Configure<TiToConfiguration>(builder.Configuration.GetSection("Tito"));
 
             var connectionString = builder.Configuration.GetConnectionString("DatabaseConnection") ?? throw new InvalidOperationException("Connection string 'DatabaseConnection' not found.");

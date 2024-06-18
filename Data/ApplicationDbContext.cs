@@ -2,6 +2,7 @@
 using CheckIN.Services.Customer;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Identity.Data
 {
@@ -40,9 +41,20 @@ namespace Identity.Data
                 .HasForeignKey(ue => ue.EventId);
 
             builder.Entity<TitoAccount>()
-                .HasOne(c => c.CustomerSettings)
-                .WithMany(cu => cu.TitoAccounts)
-                .HasForeignKey(c => c.CustomerSettingsId);
+            .HasKey(t => t.Id);
+
+            builder.Entity<CustomerSettings>()
+                .HasKey(c => c.Id);
+
+            builder.Entity<TitoAccount>()
+            .HasOne(t => t.CustomerSettings)
+            .WithMany(c => c.TitoAccounts)
+            .HasForeignKey(t => t.CustomerSettingsId);
+
+            builder.Entity<CustomerSettings>()
+            .HasOne(c => c.Customer)
+            .WithMany()
+            .HasForeignKey(c => c.CustomerId);
 
             builder.Entity<Event>()
                 .HasOne(a => a.TitoAccount)

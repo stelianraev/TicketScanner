@@ -67,10 +67,6 @@ namespace CheckIN.Controllers
 
                         if(token.TitoToken != null)
                         {
-                            //TitoSettings settings = new TitoSettings();
-                            //settings.Token = token.TitoToken;
-
-                            //return RedirectToAction("LoginWith", "Admin", settings);
                             return RedirectToAction("AdminSettings", "Admin");
                         }
 

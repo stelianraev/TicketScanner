@@ -1,8 +1,14 @@
-﻿namespace CheckIN.Data.Model
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CheckIN.Data.Model
 {
     public class CustomerSettings
     {
+        [Key]
         public string Id { get; set; }
+
+        [ForeignKey("CustomerId")]
         public string CustomerId { get; set; }
         public Customer Customer { get; set; }
 

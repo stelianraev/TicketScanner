@@ -28,9 +28,27 @@
             <section class="adminSettings">
                 <div class="form-group">
                     <label for="maskedTokenInput">Current Token:</label>
-                    <input type="text" id="maskedTokenInput" class="form-control" value="************" readonly/>
+                    <input type="text" id="maskedTokenInput" class="form-control" value="************" readonly />
                     <button type="button" id="loginWithTitoBtn">Update ti.to token</button>
                 </div>
+
+                @if (@Model.TitoSettings?.Authenticate?.Accounts != null)
+                {
+                    <div class="form-group">
+                        <label asp-for=@Model.TitoSettings.Authenticate.SelectedAccount>Select Account:</label>
+                        <select id="accountDropdown" class="form-control" name="SelectedAccount">
+                            <option value="">Select an account</option>
+                            @foreach (var account in Model.TitoSettings.Authenticate?.Accounts)
+                            {
+                                <option value="@Model.TitoSettings.Authenticate.SelectedAccount">@account</option>
+                            }
+                        </select>
+                        <span asp-validation-for="@Model.TitoSettings.Authenticate.SelectedAccount" class="small text-danger"></span>
+
+                        <input type="button" id="titoSubmitButton" value="Login with Tito">
+                        <span id="errorMessage" class="small text-danger"></span>
+                    </div>
+                }
             </section>
         </section>
 
@@ -40,7 +58,7 @@
                 <h2>Enter Tito Token</h2>
                 <form id="titoForm" method="post" type="multipart/form-data">
                     <section class="adminSettings">
-                        <div class="form-group">                           
+                        <div class="form-group">
                             <input id="titoTokenInput" asp-for="TitoSettings.Token" type="password" class="form-control">
                             <span asp-validation-for="TitoSettings.Token" class="small text-danger"></span>
                             <input type="button" id="titoSubmitButton" value="Update">

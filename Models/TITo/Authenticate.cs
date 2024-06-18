@@ -15,5 +15,7 @@ namespace CheckIN.Models.TITo
 
         [JsonProperty("accounts")]
         public string[] Accounts { get; set; }
+
+        public string SelectedAccount { get; set; }
     }
 }
