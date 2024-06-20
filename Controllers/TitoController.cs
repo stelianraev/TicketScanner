@@ -39,31 +39,27 @@ namespace CheckIN.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var customerSettings = await _context.CustomerSettings
-                    .Include(cs => cs.TitoAccounts)
-                    .FirstOrDefaultAsync(x => x.CustomerId == user!.CustomerId);
+
+                var userCustomer = await _context.UserCustomer
+                    .Include(x => x.Customer)
+                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
 
                 if (!titoSettings.IsRevoked)
                 {
-                    if (customerSettings != null)
+                    if (userCustomer.Customer.TitoToken != null)
                     {
-                        titoSettings.Token = customerSettings.TitoToken;
+                        titoSettings.Token = userCustomer.Customer.TitoToken;
                     }
                     else
                     {
-                        customerSettings = new CustomerSettings()
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            CustomerId = user!.CustomerId,
-                            TitoToken = titoSettings.Token
-                        };
+                        userCustomer.Customer.TitoToken = titoSettings.Token;
 
-                        _context.CustomerSettings.Add(customerSettings);
+                        //await _context.SaveChangesAsync();
                     }
                 }
-                else if (titoSettings.IsRevoked && customerSettings != null)
+                else if (titoSettings.IsRevoked && userCustomer != null)
                 {
-                    customerSettings.TitoToken = titoSettings.Token;
+                    userCustomer.Customer.TitoToken = titoSettings.Token;
                 }
                 else
                 {
@@ -83,44 +79,44 @@ namespace CheckIN.Controllers
 
                 var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse!);
 
-                if (customerSettings!.TitoAccounts == null)
+                if (userCustomer!.Customer.TitoAccounts == null)
                 {
-                    customerSettings.TitoAccounts = new List<TitoAccount>();
+                    userCustomer.Customer.TitoAccounts = new List<TitoAccount>();
                 }
-
+               
                 foreach (var acc in authenticate.Accounts)
                 {
-                    var isAccountExist = customerSettings.TitoAccounts.FirstOrDefault(x => x.Name == acc);
+                    var isAccountExist = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.Name == acc);
 
                     if(isAccountExist == null)
                     {
                         var titoAcc = new TitoAccount()
                         {
-                            Id = Guid.NewGuid().ToString(),
+                            Id = Guid.NewGuid(),
                             Name = acc,
-                            CustomerSettings = customerSettings,
-                            CustomerSettingsId = customerSettings.Id,
+                            CustomerId = userCustomer.Customer.Id,
                             Events = new List<Event>()
                         };
 
-                        customerSettings.TitoAccounts.Add(titoAcc);
+                        userCustomer.Customer.TitoAccounts.Add(titoAcc);
                     }                   
                 }
 
-                await _context.SaveChangesAsync();
 
+                await _context.SaveChangesAsync();
 
                 //TODO
                 var customerSettingsDto = new CustomerSettingsDto
                 {
-                    Id = customerSettings.Id,
-                    CustomerId = customerSettings.CustomerId,
-                    TitoToken = customerSettings.TitoToken,
-                    TitoAccounts = customerSettings.TitoAccounts?.Select(a => new TitoAccountDto
+                    Id = userCustomer.Customer.Id,
+                    CustomerId = userCustomer.CustomerId,
+                    TitoToken = userCustomer.Customer.TitoToken,
+                    TitoAccounts = userCustomer.Customer.TitoAccounts?.Select(a => new TitoAccountDto
                     {
                         Id = a.Id,
                         Name = a.Name
-                    }).ToList()
+                    })
+                    .ToList()
                 };
 
                 return Ok(customerSettingsDto);

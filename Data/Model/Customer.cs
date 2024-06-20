@@ -5,12 +5,14 @@ namespace CheckIN.Data.Model
     public class Customer
     {
         [Key]
-        public string CanonicalId { get; set; } = null!;
+        public Guid Id { get; set; }
 
         public string Name { get; set; } = null!;
-       
-        public virtual ICollection<User>? Users { get; set; }
 
-        public virtual ICollection<Event>? Events { get; set; }
+        public string? TitoToken { get; set; }
+
+        public virtual ICollection<UserCustomer>? UserCustomers { get; set; }
+
+        public virtual List<TitoAccount>? TitoAccounts { get; set; }
     }
 }

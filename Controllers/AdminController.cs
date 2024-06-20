@@ -7,11 +7,12 @@ using Identity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace CheckIN.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Owner")]
     public class AdminController : Controller
     {
         private readonly ILogger<AdminController> _logger;
@@ -75,14 +76,16 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings()
         {
             var user = await _userManager.GetUserAsync(User);
-            var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.Customer)
+                .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             var settingsModel = new SettingsFormModel();
             settingsModel.TitoSettings = new TitoSettings();
 
-            if (customerSettings != null)
+            if (userCustomer.Customer.TitoToken != null)
             {
-                settingsModel.TitoSettings.Token = customerSettings.TitoToken;
+                settingsModel.TitoSettings.Token = userCustomer.Customer.TitoToken;
             }
 
             return this.View(settingsModel);
@@ -93,25 +96,18 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
             var user = await _userManager.GetUserAsync(User);
-            var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.Customer)
+                .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
-            if (customerSettings != null)
+            //var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
+
+            if (userCustomer.Customer.TitoToken == null)
             {
-                customerSettings.TitoToken = adminSettingsModel.TitoSettings.Token;
-            }
-            else
-            {
-                customerSettings = new CustomerSettings()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    CustomerId = user!.CustomerId,
-                    TitoToken = adminSettingsModel.TitoSettings.Token
-                };
+                userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings.Token;
 
-                _context.CustomerSettings.Add(customerSettings);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
 
             this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
 
@@ -126,26 +122,29 @@ namespace CheckIN.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Users()
+        public async Task<IActionResult> Users(Guid customerId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            var users = _context.Users.Where(x => x.CustomerId == currentUser!.CustomerId && x.Id != currentUser.Id).ToList();
 
-            var usersViewModelList = new UsersViewModel();
-            usersViewModelList.Users = new List<UserViewModel>();
+            var users = _context.Users
+                .Include(x => x.UserCustomers)
+                .Where(x => x.Id == customerId && x.Id != currentUser.Id).ToList();
+
+            var usersFormModelList = new UsersFormModel();
+            usersFormModelList.Users = new List<UserFormModel>();
 
             foreach (var user in users)
             {
-                var tempUsersViewModel = new UserViewModel();
+                var tempUsersViewModel = new UserFormModel();
                 tempUsersViewModel.Email = user.Email!;
                 tempUsersViewModel.Password = user.PasswordHash!;
                 tempUsersViewModel.Permission = user.Permision;
                 tempUsersViewModel.Id = user.Id;
 
-                usersViewModelList.Users.Add(tempUsersViewModel);
+                usersFormModelList.Users.Add(tempUsersViewModel);
             }
 
-            return this.View(usersViewModelList);
+            return this.View(usersFormModelList);
         }
 
         [HttpGet]

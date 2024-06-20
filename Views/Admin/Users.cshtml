@@ -1,4 +1,4 @@
-﻿@model UsersViewModel
+﻿@model UsersFormModel
 
 <!DOCTYPE html>
 <html lang="en">
@@ -56,7 +56,7 @@
                                 <th>Permission</th>
                             </tr>
 
-                            foreach (UserViewModel user in Model.Users)
+                            foreach (UserFormModel user in Model.Users)
                             {
                                 <tr>
                                     <td>@user.Email</td>

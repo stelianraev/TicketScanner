@@ -1,13 +1,14 @@
 ﻿using CheckIN.Models.ViewModels;
 using Microsoft.AspNetCore.Identity;
+
 namespace CheckIN.Data.Model
 {
-    public class User : IdentityUser
+    public class User : IdentityUser<Guid>
     {
-        public string CustomerId { get; set; } = null!;
-        public Customer Customer { get; set; } = null!;
         public Permission Permision { get; set; }
 
         public virtual ICollection<UserEvent>? UserEvents { get; set; }
+
+        public virtual ICollection<UserCustomer>? UserCustomers { get; set; } = null!;
     }
 }

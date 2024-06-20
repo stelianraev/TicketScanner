@@ -1,10 +1,15 @@
-﻿namespace CheckIN.Data.Model
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CheckIN.Data.Model
 {
     public class UserEvent
     {
-        public string UserEventId { get; set; }
-        public string UserId { get; set; }
-        public string EventId { get; set; }
+        [Key]
+        public Guid UserEventId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public Guid EventId { get; set; }
 
         public User User { get; set; }
 

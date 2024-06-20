@@ -6,15 +6,15 @@ namespace CheckIN.Data.Model
     public class TitoAccount
     {
         [Key]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         [Required]
         public string Name { get; set; }
 
         [ForeignKey("CustomerSettingsId")]
-        public string CustomerSettingsId { get; set; }
+        public Guid CustomerId { get; set; }
 
-        public CustomerSettings CustomerSettings { get; set; }
+        public Customer Customer { get; set; }
 
         public virtual ICollection<Event> Events { get; set; }
     }
