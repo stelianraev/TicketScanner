@@ -92,7 +92,6 @@ namespace CheckIN.Controllers
                     {
                         var titoAcc = new TitoAccount()
                         {
-                            Id = Guid.NewGuid(),
                             Name = acc,
                             CustomerId = userCustomer.Customer.Id,
                             Events = new List<Event>()
@@ -101,7 +100,6 @@ namespace CheckIN.Controllers
                         userCustomer.Customer.TitoAccounts.Add(titoAcc);
                     }                   
                 }
-
 
                 await _context.SaveChangesAsync();
 
