@@ -1,6 +1,4 @@
-﻿using CheckIN.Data.DTO;
-using CheckIN.Data.Model;
-using CheckIN.Models;
+﻿using CheckIN.Data.Model;
 using CheckIN.Models.TITo;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
@@ -42,6 +40,7 @@ namespace CheckIN.Controllers
 
                 var userCustomer = await _context.UserCustomer
                     .Include(x => x.Customer)
+                    .Include(x => x.Customer.TitoAccounts)
                     .FirstOrDefaultAsync(x => x.UserId == user.Id);
 
                 if (!titoSettings.IsRevoked)
@@ -103,21 +102,7 @@ namespace CheckIN.Controllers
 
                 await _context.SaveChangesAsync();
 
-                //TODO
-                var customerSettingsDto = new CustomerSettingsDto
-                {
-                    Id = userCustomer.Customer.Id,
-                    CustomerId = userCustomer.CustomerId,
-                    TitoToken = userCustomer.Customer.TitoToken,
-                    TitoAccounts = userCustomer.Customer.TitoAccounts?.Select(a => new TitoAccountDto
-                    {
-                        Id = a.Id,
-                        Name = a.Name
-                    })
-                    .ToList()
-                };
-
-                return Ok(customerSettingsDto);
+                return RedirectToAction("AdminSettings", "Admin");
             }
             catch (Exception ex)
             {

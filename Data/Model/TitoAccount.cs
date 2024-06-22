@@ -14,6 +14,8 @@ namespace CheckIN.Data.Model
         [ForeignKey("CustomerSettingsId")]
         public Guid CustomerId { get; set; }
 
+        public bool IsSelected { get; set; }
+
         public Customer Customer { get; set; }
 
         public virtual ICollection<Event> Events { get; set; }

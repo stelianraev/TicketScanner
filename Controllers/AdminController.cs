@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Net;
 
 namespace CheckIN.Controllers
 {
@@ -78,10 +79,28 @@ namespace CheckIN.Controllers
             var user = await _userManager.GetUserAsync(User);
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.Customer)
+                .Include(x => x.Customer.TitoAccounts)
                 .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             var settingsModel = new SettingsFormModel();
             settingsModel.TitoSettings = new TitoSettings();
+            settingsModel.TitoSettings.Authenticate = new Authenticate();
+            settingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
+
+            var selectedTitoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
+
+            if(selectedTitoAccount != null)
+            {
+                settingsModel.TitoSettings.Authenticate.SelectedAccount = selectedTitoAccount.Name;
+            }
+            else
+            {
+                var cookies = this.Request.Cookies;
+                if (cookies.ContainsKey("SelectedTitoAccount"))
+                {
+                    settingsModel.TitoSettings!.Authenticate.SelectedAccount = cookies["SelectedTitoAccount"]!;
+                }
+            }
 
             if (userCustomer.Customer.TitoToken != null)
             {
@@ -96,26 +115,43 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
             var user = await _userManager.GetUserAsync(User);
+
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.Customer)
+                .Include(x => x.Customer.TitoAccounts)
                 .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             //var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
 
             if (userCustomer.Customer.TitoToken == null)
             {
-                userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings.Token;
-
-                await _context.SaveChangesAsync();
+                userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;                
             }
 
-            this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+            var titoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
 
-            var connectToTitoResponse = await _tiToService.Connect(adminSettingsModel.TitoSettings.Token);
+            if(titoAccount != null)
+            {
+                titoAccount.IsSelected = true;
+            }
+
+            foreach (var acc in userCustomer.Customer.TitoAccounts.Where(x => x.Id != titoAccount.Id))
+            {
+                acc.IsSelected = false;
+            }
+
+            await _context.SaveChangesAsync();
+
+            adminSettingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
+
+            this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings?.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+            this.Response.Cookies.Append("SelectedTitoAccount", adminSettingsModel.TitoSettings?.Authenticate.SelectedAccount!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+
+            //var connectToTitoResponse = await _tiToService.Connect(adminSettingsModel.TitoSettings.Token);
             //TODO handle if it is not connected
-            var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse)!;
+            //var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse)!;
 
-            adminSettingsModel.TitoSettings.Authenticate = authenticate;
+            //adminSettingsModel.TitoSettings.Authenticate = authenticate;
             //return RedirectToAction("Settings", new { id = customerSettings.CustomerId });
 
             return this.View(adminSettingsModel);
