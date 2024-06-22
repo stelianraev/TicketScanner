@@ -4,6 +4,7 @@ using Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240620100852_AddEmailToCustomer")]
+    partial class AddEmailToCustomer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,6 +86,10 @@ namespace CheckIN.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -242,17 +249,12 @@ namespace CheckIN.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("CustomerUsersId");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("OwnerId");
 
                     b.HasIndex("UserId");
 
@@ -466,26 +468,18 @@ namespace CheckIN.Migrations
             modelBuilder.Entity("CheckIN.Data.Model.UserCustomer", b =>
                 {
                     b.HasOne("CheckIN.Data.Model.Customer", "Customer")
-                        .WithMany("UserCustomers")
+                        .WithMany("Users")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CheckIN.Data.Model.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("CheckIN.Data.Model.User", "User")
-                        .WithMany("UserCustomers")
+                        .WithMany("Customers")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
-
-                    b.Navigation("Owner");
 
                     b.Navigation("User");
                 });
@@ -579,7 +573,7 @@ namespace CheckIN.Migrations
                 {
                     b.Navigation("TitoAccounts");
 
-                    b.Navigation("UserCustomers");
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
@@ -599,7 +593,7 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>
                 {
-                    b.Navigation("UserCustomers");
+                    b.Navigation("Customers");
 
                     b.Navigation("UserEvents");
                 });

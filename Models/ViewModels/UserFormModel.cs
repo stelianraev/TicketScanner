@@ -2,15 +2,15 @@
 
 namespace CheckIN.Models.ViewModels
 {
-    public class UsersViewModel
+    public class UsersFormModel
     {
-        public List<UserViewModel>? Users { get; set; }
-        public UserViewModel NewUser { get; set; }
+        public List<UserFormModel>? Users { get; set; }
+        public UserFormModel NewUser { get; set; }
     }
 
-    public class UserViewModel
+    public class UserFormModel
     {
-        public string? Id { get; set; }
+        public Guid? Id { get; set; }
 
         [Required]
         [EmailAddress]
@@ -31,8 +31,9 @@ namespace CheckIN.Models.ViewModels
 
     public enum Permission
     {
-        Admin = 1,
-        Checker = 2,
-        Scanner = 3
+        Owner = 1,
+        Administrator = 2,
+        Checker = 3,
+        Scanner = 4
     }
 }

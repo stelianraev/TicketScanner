@@ -16,6 +16,6 @@ namespace CheckIN.Models.ViewModels
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }
 
-        public string CustomerId { get; set; }
+        public Guid CustomerId { get; set; }
     }
 }

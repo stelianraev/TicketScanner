@@ -1,14 +1,20 @@
-﻿namespace CheckIN.Data.Model
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CheckIN.Data.Model
 {
     public class TitoAccount
     {
-        public string Id { get; set; }
+        [Key]
+        public Guid Id { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
-        public string CustomerSettingsId { get; set; }
+        [ForeignKey("CustomerSettingsId")]
+        public Guid CustomerId { get; set; }
 
-        public CustomerSettings CustomerSettings { get; set; }
+        public Customer Customer { get; set; }
 
         public virtual ICollection<Event> Events { get; set; }
     }

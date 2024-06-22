@@ -1,11 +1,13 @@
 ﻿using CheckIN.Data.Model;
 using CheckIN.Services.Customer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Identity.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<User>
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
         private readonly ICustomerProvider _customerProvider;
 
@@ -19,16 +21,12 @@ namespace Identity.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<UserEvent> UserEvents { get; set; }
-        public DbSet<CustomerSettings> CustomerSettings { get; set; }
         public DbSet<Attendee> Attendees { get; set; }
         public DbSet<TitoAccount> TitoAccounts { get; set; }
+        public DbSet<UserCustomer> UserCustomer { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
-        {         
-            // Set up tenant-specific filters
-            //builder.Entity<User>().HasQueryFilter(u => u.CustomerId == _tenantProvider.GetTenantId());
-            //builder.Entity<Event>().HasQueryFilter(e => e.CustomerId == _tenantProvider.GetTenantId());
-
+        {
             builder.Entity<UserEvent>()
                 .HasOne(ue => ue.User)
                 .WithMany(u => u.UserEvents)
@@ -39,10 +37,18 @@ namespace Identity.Data
                 .WithMany(e => e.UserEvents)
                 .HasForeignKey(ue => ue.EventId);
 
+            builder.Entity<UserCustomer>()
+               .HasOne(ue => ue.User)
+               .WithMany(u => u.UserCustomers)
+               .HasForeignKey(ue => ue.UserId);
+
+            builder.Entity<UserCustomer>()
+                .HasOne(ue => ue.Customer)
+                .WithMany(e => e.UserCustomers)
+                .HasForeignKey(ue => ue.CustomerId);
+
             builder.Entity<TitoAccount>()
-                .HasOne(c => c.CustomerSettings)
-                .WithMany(cu => cu.TitoAccounts)
-                .HasForeignKey(c => c.CustomerSettingsId);
+                .HasKey(t => t.Id);
 
             builder.Entity<Event>()
                 .HasOne(a => a.TitoAccount)

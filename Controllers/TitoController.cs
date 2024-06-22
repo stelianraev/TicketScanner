@@ -1,4 +1,5 @@
-﻿using CheckIN.Data.Model;
+﻿using CheckIN.Data.DTO;
+using CheckIN.Data.Model;
 using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.ViewModels;
@@ -6,6 +7,7 @@ using CheckIN.Services;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace CheckIN.Controllers
@@ -34,66 +36,96 @@ namespace CheckIN.Controllers
         [Route("Connect")]
         public async Task<IActionResult> Connect([FromBody] TitoSettings titoSettings)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
-
-            if (!titoSettings.IsRevoked)
+            try
             {
-                if (customerSettings != null)
+                var user = await _userManager.GetUserAsync(User);
+
+                var userCustomer = await _context.UserCustomer
+                    .Include(x => x.Customer)
+                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
+
+                if (!titoSettings.IsRevoked)
                 {
-                    titoSettings.Token = customerSettings.TitoToken;
+                    if (userCustomer.Customer.TitoToken != null)
+                    {
+                        titoSettings.Token = userCustomer.Customer.TitoToken;
+                    }
+                    else
+                    {
+                        userCustomer.Customer.TitoToken = titoSettings.Token;
+
+                        //await _context.SaveChangesAsync();
+                    }
+                }
+                else if (titoSettings.IsRevoked && userCustomer != null)
+                {
+                    userCustomer.Customer.TitoToken = titoSettings.Token;
                 }
                 else
                 {
-                    customerSettings = new CustomerSettings()
+                    if (!ModelState.IsValid)
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        CustomerId = user!.CustomerId,
-                        TitoToken = titoSettings.Token
-                    };
-
-                    _context.CustomerSettings.Add(customerSettings);
+                        return BadRequest(ModelState);
+                    }
                 }
-            }
-            else if(titoSettings.IsRevoked && titoSettings != null)
-            {
-                customerSettings!.TitoToken = titoSettings.Token;
-            }
-            else
-            {
-                if (!ModelState.IsValid)
+
+                var connectToTitoResponse = await _tiToService.Connect(titoSettings!.Token);
+
+                if (connectToTitoResponse == "null" || connectToTitoResponse == "Unauthorized")
                 {
+                    ModelState.AddModelError("Token", "Invalid token! Please enter a valid ti.to token.");
                     return BadRequest(ModelState);
                 }
-            }
 
-            var connectToTitoResponse = await _tiToService.Connect(titoSettings!.Token);
+                var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse!);
 
-            if (connectToTitoResponse == "null" || connectToTitoResponse == "Unauthorized")
-            {
-                ModelState.AddModelError("Token", "Invalid token! Please enter a valid ti.to token.");
-
-                return BadRequest(ModelState);
-            }            
-
-            var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse!);
-
-            foreach(var acc in authenticate.Accounts)
-            {
-                var titoAcc = new TitoAccount()
+                if (userCustomer!.Customer.TitoAccounts == null)
                 {
-                    Name = acc,
-                    CustomerSettings = customerSettings,
-                    Events = new List<Event>()
+                    userCustomer.Customer.TitoAccounts = new List<TitoAccount>();
+                }
+               
+                foreach (var acc in authenticate.Accounts)
+                {
+                    var isAccountExist = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.Name == acc);
+
+                    if(isAccountExist == null)
+                    {
+                        var titoAcc = new TitoAccount()
+                        {
+                            Name = acc,
+                            CustomerId = userCustomer.Customer.Id,
+                            Events = new List<Event>()
+                        };
+
+                        userCustomer.Customer.TitoAccounts.Add(titoAcc);
+                    }                   
+                }
+
+                await _context.SaveChangesAsync();
+
+                //TODO
+                var customerSettingsDto = new CustomerSettingsDto
+                {
+                    Id = userCustomer.Customer.Id,
+                    CustomerId = userCustomer.CustomerId,
+                    TitoToken = userCustomer.Customer.TitoToken,
+                    TitoAccounts = userCustomer.Customer.TitoAccounts?.Select(a => new TitoAccountDto
+                    {
+                        Id = a.Id,
+                        Name = a.Name
+                    })
+                    .ToList()
                 };
 
-                customerSettings.TitoAccounts.Add(titoAcc);
+                return Ok(customerSettingsDto);
             }
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("AdminSettings", "Admin");
+            catch (Exception ex)
+            {
+                // Logging exception
+                return StatusCode(500, "Internal server error");
+            }
         }
+
 
 
         [HttpGet]

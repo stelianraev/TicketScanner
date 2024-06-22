@@ -2,6 +2,7 @@ using CheckIN.Configuration;
 using CheckIN.Data.Model;
 using CheckIN.Middleware;
 using CheckIN.Services;
+using CheckIN.Services.Cache;
 using CheckIN.Services.Customer;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
@@ -42,6 +43,7 @@ namespace CheckIN
                     options.ColorBehavior = LoggerColorBehavior.Enabled;
                 });
             }
+
             builder.Services.Configure<TiToConfiguration>(builder.Configuration.GetSection("Tito"));
 
             var connectionString = builder.Configuration.GetConnectionString("DatabaseConnection") ?? throw new InvalidOperationException("Connection string 'DatabaseConnection' not found.");
@@ -50,22 +52,7 @@ namespace CheckIN
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            //builder.Services.AddDefaultIdentity<User>(options =>
-            //{
-            //    options.SignIn.RequireConfirmedAccount = false;
-            //    options.Password.RequireDigit = false;
-            //    options.Password.RequireUppercase = false;
-            //    options.Password.RequireLowercase = false;
-            //    options.Password.RequireNonAlphanumeric = false;
-            //    options.Password.RequiredLength = 0;
-            //    options.ClaimsIdentity.RoleClaimType = "role";
-            //})
-            //    .AddRoles<IdentityRole>()
-            //    .AddEntityFrameworkStores<ApplicationDbContext>()
-            //    .AddDefaultTokenProviders();
-
-
-            builder.Services.AddIdentity<User, IdentityRole>(options =>
+            builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
             {
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;
@@ -97,9 +84,9 @@ namespace CheckIN
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddSingleton<Common>();
+            builder.Services.AddSingleton<ICache, SystemCache>();
             builder.Services.AddSingleton<ITiToService, TiToService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
-
         }
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)

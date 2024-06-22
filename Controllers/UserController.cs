@@ -4,6 +4,7 @@ using CheckIN.Models.TITo;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CheckIN.Controllers
 {
@@ -43,12 +44,14 @@ namespace CheckIN.Controllers
             if (string.IsNullOrEmpty(settingsModel.TitoSettings!.Token))
             {
                 var user = await _userManager.GetUserAsync(User);
-                var customer = _context.Customers.FirstOrDefault(x => x.CanonicalId == user!.CustomerId);
 
-                if(customer != null)
+                var userCustomer = await _context.UserCustomer.FirstOrDefaultAsync(x => x.UserId == user.Id);
+                //var customer = _context.Customers.FirstOrDefault(x => x.Id == user!.CustomerId);
+
+                if(userCustomer.Customer != null)
                 {
-                    var settings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == customer.CanonicalId);
-                    settingsModel.TitoSettings!.Token = settings!.TitoToken;
+                    var customer = _context.Customers.FirstOrDefault(x => x.Id == userCustomer.CustomerId);
+                    settingsModel.TitoSettings!.Token = customer!.TitoToken;
 
                     ModelState.Remove(nameof(settingsModel.TitoSettings.Token));
                 }
