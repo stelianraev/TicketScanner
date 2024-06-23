@@ -13,7 +13,7 @@ namespace CheckIN.Services
             _tiToConfiguration = titoConfiguration.Value;
         }
 
-        public async Task<string> Connect (string titoToken)
+        public async Task<string> AuthenticateAsync(string titoToken)
         {
             string url = _tiToConfiguration.BaseUrl + "hello";
 
@@ -136,6 +136,27 @@ namespace CheckIN.Services
             }
 
             return response;
+        }
+
+        public async Task<string> GetEventsAsync(string titoToken, string accountId)
+        {
+            string url = _tiToConfiguration.BaseUrl + accountId + "/events";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
         }
     }
 }

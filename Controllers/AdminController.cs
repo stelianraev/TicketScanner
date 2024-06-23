@@ -200,6 +200,12 @@ namespace CheckIN.Controllers
         public IActionResult CheckIn()
         {
             return RedirectToAction("Index", "CheckIn");
-        }       
+        }
+
+        //[HttpGet]
+        //public IActionResult Tickets()
+        //{
+
+        //}
     }
 }

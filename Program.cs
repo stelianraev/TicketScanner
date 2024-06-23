@@ -1,3 +1,4 @@
+using CheckIN.Common;
 using CheckIN.Configuration;
 using CheckIN.Data.Model;
 using CheckIN.Middleware;
@@ -5,9 +6,11 @@ using CheckIN.Services;
 using CheckIN.Services.Cache;
 using CheckIN.Services.Customer;
 using Identity.Data;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
+using System.Reflection;
 using System.Security.Claims;
 
 namespace CheckIN
@@ -79,11 +82,12 @@ namespace CheckIN
             //    options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
             //});
 
+            builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddHttpClient();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddSingleton<Common>();
+            builder.Services.AddSingleton<PasswordHashingService>();
             builder.Services.AddSingleton<ICache, SystemCache>();
             builder.Services.AddSingleton<ITiToService, TiToService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();

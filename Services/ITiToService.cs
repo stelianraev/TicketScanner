@@ -12,6 +12,8 @@ namespace CheckIN.Services
 
         public Task<byte[]> GetVCardAsync(string titoToken, string ticketId);
 
-        public Task<string> Connect(string titoToken);
+        public Task<string> AuthenticateAsync(string titoToken);
+
+        public Task<string> GetEventsAsync(string titoToken, string accountId);
     }
 }

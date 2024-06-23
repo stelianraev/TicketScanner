@@ -1,4 +1,5 @@
-﻿using CheckIN.Data.Model;
+﻿using CheckIN.Common;
+using CheckIN.Data.Model;
 using CheckIN.Models.TITo;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
@@ -20,13 +21,13 @@ namespace CheckIN.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
-        private readonly Common _commonHelper;
+        private readonly PasswordHashingService _passwordHashingService;
         private readonly ICache _cache;
 
         public AccountController(
             ICache chace,
+            PasswordHashingService passwordHashingService,
             ApplicationDbContext context,
-            Common commonHelper,
             ICustomerProvider customerProvider,
             SignInManager<User> signInManager,
             UserManager<User> userManager,
@@ -38,7 +39,7 @@ namespace CheckIN.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
             _roleManager = roleManager;
-            _commonHelper = commonHelper;
+            _passwordHashingService = passwordHashingService;
             _cache = chace;
         }
 
@@ -332,7 +333,7 @@ namespace CheckIN.Controllers
 
             user.Email = userModel.Email;
 
-            user.PasswordHash = userModel.Password != null ? _commonHelper.PasswordHash(userModel.Password) : user.PasswordHash;
+            user.PasswordHash = userModel.Password != null ? _passwordHashingService.PasswordHash(userModel.Password) : user.PasswordHash;
             //user.PasswordHash = _commonHelper.PasswordHash(userModel.Password);
             user.Permision = userModel.Permission;
 

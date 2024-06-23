@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Security.Cryptography;
 
-namespace CheckIN.Services
+namespace CheckIN.Common
 {
-    public class Common
+    public class PasswordHashingService
     {
         public string PasswordHash(string password)
         {
