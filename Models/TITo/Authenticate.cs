@@ -17,5 +17,9 @@ namespace CheckIN.Models.TITo
         public List<string> Accounts { get; set; }
 
         public string SelectedAccount { get; set; }
+
+        public List<string> Events { get; set; }
+
+        public string SelectedEvent { get; set; }
     }
 }

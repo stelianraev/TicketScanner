@@ -79,7 +79,8 @@ namespace CheckIN.Controllers
             var user = await _userManager.GetUserAsync(User);
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.Customer)
-                .Include(x => x.Customer.TitoAccounts)
+                    .ThenInclude(x => x.TitoAccounts)
+                    .ThenInclude(x => x.Events)
                 .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             var settingsModel = new SettingsFormModel();
@@ -88,8 +89,10 @@ namespace CheckIN.Controllers
             settingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
 
             var selectedTitoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
+            settingsModel.TitoSettings.Authenticate.Events = selectedTitoAccount.Events.Select(x => x.Slug).ToList();
+            var selectedEvent = selectedTitoAccount.Events.FirstOrDefault(x => x.IsSelected);
 
-            if(selectedTitoAccount != null)
+            if (selectedTitoAccount != null)
             {
                 settingsModel.TitoSettings.Authenticate.SelectedAccount = selectedTitoAccount.Name;
             }
@@ -100,6 +103,11 @@ namespace CheckIN.Controllers
                 {
                     settingsModel.TitoSettings!.Authenticate.SelectedAccount = cookies["SelectedTitoAccount"]!;
                 }
+            }
+
+            if(selectedEvent != null)
+            {
+                settingsModel.TitoSettings.Authenticate.SelectedEvent = selectedEvent!.Slug;
             }
 
             if (userCustomer.Customer.TitoToken != null)
@@ -118,7 +126,8 @@ namespace CheckIN.Controllers
 
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.Customer)
-                .Include(x => x.Customer.TitoAccounts)
+                    .ThenInclude(x => x.TitoAccounts)
+                        .ThenInclude(x => x.Events)
                 .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             //var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
@@ -129,8 +138,9 @@ namespace CheckIN.Controllers
             }
 
             var titoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
+            var titoEvent = titoAccount.Events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
 
-            if(titoAccount != null)
+            if (titoAccount != null)
             {
                 titoAccount.IsSelected = true;
             }
@@ -140,9 +150,20 @@ namespace CheckIN.Controllers
                 acc.IsSelected = false;
             }
 
+            if (titoEvent != null)
+            {
+                titoEvent.IsSelected = true;
+            }
+
+            foreach (var acc in titoAccount.Events.Where(x => x.Slug != titoEvent.Slug))
+            {
+                acc.IsSelected = false;
+            }
+
             await _context.SaveChangesAsync();
 
             adminSettingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
+            adminSettingsModel.TitoSettings.Authenticate.Events = titoAccount?.Events?.Select(x => x.Title).ToList();
 
             this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings?.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedTitoAccount", adminSettingsModel.TitoSettings?.Authenticate.SelectedAccount!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
@@ -183,11 +204,12 @@ namespace CheckIN.Controllers
             return this.View(usersFormModelList);
         }
 
-        [HttpGet]
-        public IActionResult Events()
-        {
-            return this.View();
-        }
+        //TODO maybe for analytics
+        //[HttpGet]
+        //public IActionResult Events()
+        //{
+        //   return RedirectToAction("Event", "Tito");
+        //}
 
         [HttpPost]
         public IActionResult Events(Authenticate authenticate)

@@ -45,6 +45,8 @@ namespace CheckIN.Data.Model
 
         public bool Live { get; set; }
 
+        public bool IsSelected { get; set; }
+
         public Guid CustomerId { get; set; }
         public Customer Customer { get; set; }        
 

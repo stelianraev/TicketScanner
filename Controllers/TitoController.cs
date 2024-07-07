@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Azure;
 using CheckIN.Data.Model;
+using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.TITo.Event;
 using CheckIN.Models.ViewModels;
@@ -102,6 +104,41 @@ namespace CheckIN.Controllers
                     }
                 }
 
+                var selectedAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
+
+                if (selectedAccount == null)
+                {
+                    ModelState.AddModelError("Event account", "You are not select an account");
+                    return this.View(userCustomer);
+                }
+
+                var addEvents = await _tiToService.GetEventsAsync(userCustomer.Customer.TitoToken, selectedAccount.Name);
+
+                var titoEventsDeserializer = JsonConvert.DeserializeObject<TitoEventResponse>(addEvents!);
+
+                if (titoEventsDeserializer.Events != null)
+                {
+                    foreach (var titoEvent in titoEventsDeserializer.Events)
+                    {
+                        var eventEntity = _mapper.Map<Event>(titoEvent);
+                        eventEntity.CustomerId = selectedAccount.CustomerId;
+
+                        if (selectedAccount.Events == null)
+                        {
+                            selectedAccount.Events = new List<Event>();
+                        }
+
+                        var existingEvent = selectedAccount.Events.FirstOrDefault(x => x.Slug == eventEntity.Slug);
+
+                        if (existingEvent != null)
+                        {
+                            existingEvent = eventEntity;
+                        }
+
+                        selectedAccount.Events.Add(eventEntity);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
                 return RedirectToAction("AdminSettings", "Admin");
@@ -133,7 +170,7 @@ namespace CheckIN.Controllers
                             .ThenInclude(x => x.Events)
                     .FirstOrDefaultAsync(x => x.UserId == user.Id);
 
-                if(userCustomer?.Customer.TitoToken == null)
+                if (userCustomer?.Customer.TitoToken == null)
                 {
                     ModelState.AddModelError(userCustomer.Customer.TitoToken, "You must add ti.to token");
                 }
@@ -174,10 +211,10 @@ namespace CheckIN.Controllers
                         userCustomer.Customer.TitoAccounts.Add(titoAcc);
                     }
                 }
-                
-                var selectedAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);                
 
-                if(selectedAccount == null)
+                var selectedAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
+
+                if (selectedAccount == null)
                 {
                     ModelState.AddModelError("Event account", "You are not select an account");
                     return this.View(userCustomer);
@@ -187,14 +224,14 @@ namespace CheckIN.Controllers
 
                 var titoEventsDeserializer = JsonConvert.DeserializeObject<TitoEventResponse>(addEvents!);
 
-                if(titoEventsDeserializer.Events != null)
+                if (titoEventsDeserializer.Events != null)
                 {
                     foreach (var titoEvent in titoEventsDeserializer.Events)
                     {
                         var eventEntity = _mapper.Map<Event>(titoEvent);
                         eventEntity.CustomerId = selectedAccount.CustomerId;
 
-                        if(selectedAccount.Events == null)
+                        if (selectedAccount.Events == null)
                         {
                             selectedAccount.Events = new List<Event>();
                         }
@@ -205,8 +242,10 @@ namespace CheckIN.Controllers
                         {
                             existingEvent = eventEntity;
                         }
-
-                        selectedAccount.Events.Add(eventEntity);
+                        else
+                        {
+                            selectedAccount.Events.Add(eventEntity);
+                        }
                     }
                 }
 
@@ -278,7 +317,8 @@ namespace CheckIN.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Event([FromBody] TitoSettings titoSettings)
+        [Route("Event")]
+        public async Task<IActionResult> Event([FromBody] EventRequestModel titoSettings)
         {
             try
             {
@@ -293,9 +333,20 @@ namespace CheckIN.Controllers
 
                 //if (titoAccountId == null)
                 //{
-                    var getEventsResponse = await _tiToService.GetEventsAsync(titoSettings!.Token, titoSettings.Authenticate.SelectedAccount);
-                //}
+                var getEventsResponse = await _tiToService.GetEventsAsync(titoSettings!.Token, titoSettings!.Account);
 
+                var result = JsonConvert.DeserializeObject<TitoEventResponse>(getEventsResponse);
+
+                var user = await _userManager.GetUserAsync(User);
+
+                var userCustomer = await _context.UserCustomer
+                    .Include(x => x.Customer)
+                        .ThenInclude(x => x.TitoAccounts)
+                            .ThenInclude(x => x.Events)
+                    .FirstOrDefaultAsync(x => x.UserId == user.Id!);
+
+
+                //}
 
                 //if (getEventsResponse == "null" || getEventsResponse == "Unauthorized")
                 //{
@@ -329,15 +380,13 @@ namespace CheckIN.Controllers
 
                 //await _context.SaveChangesAsync();
 
-                return RedirectToAction("AdminSettings", "Admin");
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 // Logging exception
                 return StatusCode(500, "Internal server error");
             }
-
-            return this.View();
         }
     }
 

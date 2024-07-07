@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AdminPanel</title>
     <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/test.js"></script>
 </head>
 <body>
     <section class="adminPage">
@@ -30,13 +32,13 @@
                         <label for="maskedTokenInput">Current Token:</label>
                         <input asp-for="TitoSettings.Token" type="text" id="maskedTokenInput" class="form-control" readonly />
                         <button type="button" id="loginWithTitoBtn">Update ti.to token</button>
-                    </div>                    
-
+                    </div>
+                    @Html.HiddenFor(m => m.TitoSettings.Token)
                     @if (Model.TitoSettings?.Authenticate?.Accounts != null)
                     {
                         <div class="form-group">
                             <label asp-for="TitoSettings.Authenticate.SelectedAccount">Select Account:</label>
-                            <select asp-for="TitoSettings.Authenticate.SelectedAccount" id="accountDropdown" class="form-control">
+                            <select asp-for="TitoSettings.Authenticate.SelectedAccount" id="accountDropdown" class="form-control" onchange="Test.doSomething(event)">
                                 @if (Model.TitoSettings.Authenticate.SelectedAccount == null)
                                 {
                                     <option value="">Select an account</option>
@@ -46,28 +48,26 @@
                                     <option value="@account">@account</option>
                                 }
                             </select>
-                            <span asp-validation-for="TitoSettings.Authenticate.SelectedAccount" class="small text-danger"></span>                            
+                            <span asp-validation-for="TitoSettings.Authenticate.SelectedAccount" class="small text-danger"></span>
                         </div>
 
-                        @* @if (Model.TitoSettings?.Events != null)
+                        @if (Model.TitoSettings?.Authenticate?.Events != null)
                         {
                             <div class="form-group">
-                                <label asp-for="TitoSettings.SelectedEvent">Select Account:</label>
-                                <select asp-for="TitoSettings.SelectedEvent" id="eventDropdown" class="form-control">
-                                    @if (Model.TitoSettings.SelectedEvent == null)
+                                <label asp-for="TitoSettings.Authenticate.SelectedEvent">Select Event:</label>
+                                <select asp-for="TitoSettings.Authenticate.SelectedEvent" id="eventdropdown" class="form-control">
+                                    @if (Model.TitoSettings.Authenticate.SelectedAccount == null)
                                     {
-                                        <option value="">Select an event</option>
+                                        <option value="">select an event</option>
                                     }
-                                    @foreach (var titoEvent in Model.TitoSettings?.Events)
+                                    @foreach (var titoevent in Model.TitoSettings.Authenticate?.Events)
                                     {
-                                        <option value="@titoEvent">@titoEvent</option>
+                                        <option value="@titoevent">@titoevent</option>
                                     }
                                 </select>
-                                <span asp-validation-for="TitoSettings.SelectedEvent" class="small text-danger"></span>
-
-                                <button type="button" id="updateEvent">Update Events</button>
+                                <span asp-validation-for="@Model.TitoSettings.Authenticate.SelectedEvent" class="small text-danger"></span>
                             </div>
-                        } *@
+                        }
                     }
 
                     <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -120,7 +120,6 @@
         document.getElementById('updateSettings').onclick = updateSettings;
 
         async function connectToTito(event) {
-            debugger;
             event.preventDefault();
             const errorMessage = document.getElementById("errorMessage");
 
@@ -138,6 +137,41 @@
                 } else {
                     const result = await response.json();
                     errorMessage.textContent = result.error || "Please try with a valid token.";
+                }
+            } catch (error) {
+                errorMessage.textContent = "An error occurred. Please try again.";
+            }
+        }
+
+        async function getEvents(event) {
+            const selectedAccount = event.target.value;
+            if (!selectedAccount) return;
+            const errorMessage = document.getElementById("errorMessage");
+
+            try {
+                const response = await fetch('/Tito/Event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ Token: '@Model.TitoSettings.Token', Account: selectedAccount })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    // Update the events dropdown with the fetched events
+
+                    const eventDropdown = document.getElementById("eventdropdown");
+                    eventDropdown.innerHTML = '';
+                    result.events.forEach(event => {
+                        const option = document.createElement("option");
+                        option.value = event;
+                        option.textContent = event.Title;
+                        eventDropdown.appendChild(option);
+                    });
+                } else {
+                    const result = await response.json();
+                    errorMessage.textContent = result.error || "Please try with a valid account.";
                 }
             } catch (error) {
                 errorMessage.textContent = "An error occurred. Please try again.";
