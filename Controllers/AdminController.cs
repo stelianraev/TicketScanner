@@ -89,11 +89,13 @@ namespace CheckIN.Controllers
             settingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
 
             var selectedTitoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
-            settingsModel.TitoSettings.Authenticate.Events = selectedTitoAccount.Events.Select(x => x.Slug).ToList();
-            var selectedEvent = selectedTitoAccount.Events.FirstOrDefault(x => x.IsSelected);
+
+            Event selectedEvent = null;
 
             if (selectedTitoAccount != null)
             {
+                settingsModel.TitoSettings.Authenticate.Events = selectedTitoAccount.Events.Select(x => x.Slug).ToList();
+                selectedEvent = selectedTitoAccount.Events.FirstOrDefault(x => x.IsSelected);
                 settingsModel.TitoSettings.Authenticate.SelectedAccount = selectedTitoAccount.Name;
             }
             else
@@ -179,24 +181,37 @@ namespace CheckIN.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Users(Guid customerId)
+        public async Task<IActionResult> Users()
         {
             var currentUser = await _userManager.GetUserAsync(User);
 
-            var users = _context.Users
-                .Include(x => x.UserCustomers)
-                .Where(x => x.Id == customerId && x.Id != currentUser.Id).ToList();
+            var selectedEvent = _context.UserEvents
+                .Include(x => x.Event)
+                .FirstOrDefault(x => x.UserId == currentUser.Id && x.Event.IsSelected == true);
 
             var usersFormModelList = new UsersFormModel();
+
+            if (selectedEvent == null)
+            {
+                ModelState.AddModelError("Event", "Event is not selected. Please check settings and selet event");
+                return this.View(usersFormModelList);
+            }
+
+            var users = _context.UserEvents
+                .Include(x => x.Event)
+                .Include(x => x.User)
+                .Where(x => x.EventId == selectedEvent.EventId && x.UserId != currentUser.Id)
+                .ToList();
+
             usersFormModelList.Users = new List<UserFormModel>();
 
             foreach (var user in users)
             {
                 var tempUsersViewModel = new UserFormModel();
-                tempUsersViewModel.Email = user.Email!;
-                tempUsersViewModel.Password = user.PasswordHash!;
-                tempUsersViewModel.Permission = user.Permision;
-                tempUsersViewModel.Id = user.Id;
+                tempUsersViewModel.Email = user.User.Email!;
+                tempUsersViewModel.Password = user.User.PasswordHash!;
+                tempUsersViewModel.Permission = user.User.Permision;
+                tempUsersViewModel.Id = user.User.Id;
 
                 usersFormModelList.Users.Add(tempUsersViewModel);
             }

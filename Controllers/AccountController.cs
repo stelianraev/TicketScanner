@@ -101,6 +101,7 @@ namespace CheckIN.Controllers
                         }
 
                         var customer = await _context.UserCustomer
+                            .Include(x => x.User)
                             .Include(x => x.Customer)
                             .FirstOrDefaultAsync(x => x.UserId == user.Id);
 
@@ -134,10 +135,10 @@ namespace CheckIN.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public IActionResult UserRegistration()
+        [Authorize(Roles = "Admin, Owner")]
+        public async Task<IActionResult> UserRegistration()
         {
-            var customerId = GetCurrentCustomer();
+            var customerId = await GetCurrentCustomerAsync();
 
             if (customerId == Guid.Empty)
             {
@@ -153,12 +154,12 @@ namespace CheckIN.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Owner")]
         public async Task<IActionResult> UserRegistration(UsersFormModel users)
         {
-            var customerId = GetCurrentCustomer();
+            var userCustomer = await GetCurrentUserCustomerAsync();
 
-            if (customerId == Guid.Empty)
+            if (userCustomer.CustomerId == Guid.Empty)
             {
                 return Unauthorized();
             }
@@ -168,14 +169,15 @@ namespace CheckIN.Controllers
             //    ModelState.AddModelError(users.NewUser.Password, "Passwords does not match");
             //}
 
-            var customer = await _context.UserCustomer.FirstOrDefaultAsync(x => x.CustomerId == customerId);
-            if (customer?.Customer == null)
+            var customer = await _context.Customers.FirstOrDefaultAsync(x => x.Id == userCustomer.CustomerId);
+            if (customer == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid customer.");
+                return View(users);
             }
 
             //var existingUser = _context.Users.FirstOrDefault(x => x.Email == users.NewUser.Email);
-            var existingUser = _context.Users.FirstOrDefault(x => x.Id == customer.UserId);
+            var existingUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
 
             if (existingUser != null)
             {
@@ -184,18 +186,15 @@ namespace CheckIN.Controllers
 
             if (!ModelState.IsValid)
             {
-                return View(users);
+                return View(users.NewUser);
             }
 
             var newUser = new User
             {
                 UserName = users.NewUser.Email,
                 Email = users.NewUser.Email,
-                Permision = users.NewUser.Permission,
-                UserCustomers = new List<UserCustomer>()
+                Permision = users.NewUser.Permission                
             };
-
-            newUser.UserCustomers.Add(customer);
 
             var result = await _userManager.CreateAsync(newUser, users.NewUser.Password);
 
@@ -207,6 +206,24 @@ namespace CheckIN.Controllers
                 }
 
                 await _userManager.AddToRoleAsync(newUser, users.NewUser.Permission.ToString());
+
+                newUser = await _userManager.FindByEmailAsync(users.NewUser.Email);
+                var owner = await _context.Users.FirstOrDefaultAsync(x => x.Id == userCustomer.OwnerId);
+
+                var newUserCustomer = new UserCustomer()
+                {
+                    Customer = customer,
+                    User = newUser,
+                    Owner = owner
+                };
+
+                _context.UserCustomer.Add(newUserCustomer);
+
+
+                var selectedEvent = await _context.UserEvents
+                    .Include(x => x.User)
+                    .Include(x => x.Event)
+                    .FirstOrDefaultAsync(x => x.UserId == owner.Id);
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Users", "Admin");
@@ -253,7 +270,9 @@ namespace CheckIN.Controllers
             {
                 UserName = customer.Email,
                 Email = customer.Email,
-                Permision = Permission.Owner
+                Permision = Permission.Owner,
+                UserCustomers = new List<UserCustomer>()
+               
             };
 
             var userCustomer = new UserCustomer()
@@ -268,6 +287,8 @@ namespace CheckIN.Controllers
                 UserCustomers = new List<UserCustomer>() { userCustomer },
                 TitoToken = null
             };
+
+            userCustomer.Customer = newCustomer;
 
             await _context.Customers.AddAsync(newCustomer);
             var result = await _userManager.CreateAsync(user, customer.Password);
@@ -293,16 +314,26 @@ namespace CheckIN.Controllers
             return View(customer);
         }
 
-        private Guid GetCurrentCustomer()
+        private async Task<Guid> GetCurrentCustomerAsync()
         {
             var userId = _userManager.GetUserId(User);
-            var user = _userManager.FindByIdAsync(userId).Result;
-            var userCustomer = user.UserCustomers.FirstOrDefault(x => x.UserId == user.Id);
+            var userCustomer = await _context.UserCustomer.FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
+            var customer = userCustomer.Customer;
+            //var user = _userManager.FindByIdAsync(userId).Result;
+            //var userCustomer = user.UserCustomers.FirstOrDefault(x => x.UserId == user.Id);
             return userCustomer.CustomerId;
         }
 
+        private async Task<UserCustomer> GetCurrentUserCustomerAsync()
+        {
+            var userId = _userManager.GetUserId(User);
+            var userCustomer = await _context.UserCustomer.FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
+
+            return userCustomer;
+        }
+
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Owner")]
         public async Task<IActionResult> EditUser(Guid id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -316,7 +347,7 @@ namespace CheckIN.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Owner")]
         public async Task<IActionResult> EditUser(UserFormModel userModel)
         {
             if (!ModelState.IsValid)

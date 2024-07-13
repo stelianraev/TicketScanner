@@ -38,7 +38,7 @@ namespace CheckIN.Controllers
 
         [HttpPost]
         [Route("Authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody] TitoSettings titoSettings)
+        public async Task<IActionResult> AuthenticateAsync([FromBody] TitoSettings titoSettings)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace CheckIN.Controllers
                 var connectToTitoResponse = await _tiToService.AuthenticateAsync(titoSettings!.Token);
 
                 if (connectToTitoResponse == "null" || connectToTitoResponse == "Unauthorized")
-                {
+                {                    
                     ModelState.AddModelError("Token", "Invalid token! Please enter a valid ti.to token.");
                     return BadRequest(ModelState);
                 }
@@ -108,8 +108,13 @@ namespace CheckIN.Controllers
 
                 if (selectedAccount == null)
                 {
-                    ModelState.AddModelError("Event account", "You are not select an account");
-                    return this.View(userCustomer);
+                    userCustomer.Customer.TitoAccounts[0].IsSelected = true;
+                    selectedAccount = userCustomer.Customer.TitoAccounts[0];
+
+
+                    //return RedirectToAction("AdminSettings", "Admin");
+                    //ModelState.AddModelError("Event account", "You are not select an account");
+                    //return this.View(userCustomer);
                 }
 
                 var addEvents = await _tiToService.GetEventsAsync(userCustomer.Customer.TitoToken, selectedAccount.Name);
@@ -336,14 +341,50 @@ namespace CheckIN.Controllers
                 var getEventsResponse = await _tiToService.GetEventsAsync(titoSettings!.Token, titoSettings!.Account);
 
                 var result = JsonConvert.DeserializeObject<TitoEventResponse>(getEventsResponse);
+                var titoAccount = await _context.TitoAccounts
+                    .Include(x => x.Events)
+                    .FirstOrDefaultAsync(x => x.Name == titoSettings.Account);
+
 
                 var user = await _userManager.GetUserAsync(User);
-
                 var userCustomer = await _context.UserCustomer
                     .Include(x => x.Customer)
-                        .ThenInclude(x => x.TitoAccounts)
-                            .ThenInclude(x => x.Events)
-                    .FirstOrDefaultAsync(x => x.UserId == user.Id!);
+                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
+                //var customer1 = await _context.User
+
+                if (titoAccount.Events == null)
+                {
+                    titoAccount.Events = new List<Event>();
+                }
+
+                foreach (var ev in result.Events)
+                {       
+                    if(!titoAccount.Events.Any(x => x.AccountSlug == ev.AccountSlug))
+                    {
+                        var newEvent = new Event();
+                        _mapper.Map(ev, newEvent);
+
+                        newEvent.UserEvents = new List<UserEvent>();
+
+                        var newUserEvent = new UserEvent()
+                        {
+                            User = userCustomer.User,
+                            Event = newEvent
+                        };
+
+                        newEvent.UserEvents.Add(newUserEvent);
+                        newEvent.Customer = userCustomer.Customer;                       
+                        titoAccount.Events.Add(newEvent);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                //var userCustomer = await _context.UserCustomer
+                //    .Include(x => x.Customer)
+                //        .ThenInclude(x => x.TitoAccounts)
+                //            .ThenInclude(x => x.Events)
+                //    .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
 
                 //}

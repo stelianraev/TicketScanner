@@ -26,15 +26,15 @@
                     </div>
                     <div class="form-group">
                         <label for="NewUser_Permission">Permission:</label>
-                        <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>()" class="form-control"></select>
+                        <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
                         <span asp-validation-for="Permission" class="small text-danger"></span>
                     </div>
                 </section>
 
                 <button id="save" type="submit">Save</button>
             </form>
-
-            <button asp-action="Users" asp-controller="Admin">Cancel</button>
+        <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Users", "Admin")'">Cancel</button>
+        @* <button asp-action="Users" asp-controller="Admin">Cancel</button> *@
         </section>
 </body>
 </html>
