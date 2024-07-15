@@ -159,29 +159,60 @@ namespace CheckIN.Controllers
         {
             var userCustomer = await GetCurrentUserCustomerAsync();
 
+
             if (userCustomer.CustomerId == Guid.Empty)
             {
                 return Unauthorized();
             }
 
-            //if (users.NewUser.Password != users.NewUser.ConfirmPassword)
-            //{
-            //    ModelState.AddModelError(users.NewUser.Password, "Passwords does not match");
-            //}
-
-            var customer = await _context.Customers.FirstOrDefaultAsync(x => x.Id == userCustomer.CustomerId);
-            if (customer == null)
-            {
-                ModelState.AddModelError(string.Empty, "Invalid customer.");
-                return View(users);
-            }
-
-            //var existingUser = _context.Users.FirstOrDefault(x => x.Email == users.NewUser.Email);
             var existingUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
+
+            var selectedAccount = await _context.TitoAccounts
+                .Include(x => x.Events)
+                .FirstOrDefaultAsync(x => x.CustomerId == userCustomer.CustomerId && x.IsSelected == true);
+
+            var selectedEvent = selectedAccount.Events
+              .FirstOrDefault(x => x.IsSelected == true);
+
+            var userEvents = await _context.UserEvents
+             .Include(x => x.Event)
+             .Include(x => x.User)
+             .Where(x => x.EventId == selectedEvent.EventId)
+             .ToListAsync();
+
+            var newUser = new User
+            {
+                UserName = users.NewUser.Email,
+                Email = users.NewUser.Email,
+                Permision = users.NewUser.Permission
+            };
 
             if (existingUser != null)
             {
-                ModelState.AddModelError("Users", "This email is already used with this customer");
+                var existingUserInEvent = userEvents.FirstOrDefault(x => x.UserId == existingUser.Id);
+
+                if (existingUserInEvent != null)
+                {
+                    ModelState.AddModelError("Users", "This email is already used with this customer");
+                }
+                else
+                {
+
+                    newUser.Email = existingUser.Email;
+                    newUser.UserName = existingUser.UserName;                    
+
+                    var newUserEvent = new UserEvent()
+                    {
+                        Event = selectedEvent,
+                        User = newUser
+                    };
+
+                    await _context.AddAsync(newUserEvent);
+
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToAction("Users", "Admin");
+                }
             }
 
             if (!ModelState.IsValid)
@@ -189,12 +220,25 @@ namespace CheckIN.Controllers
                 return View(users.NewUser);
             }
 
-            var newUser = new User
+                  
+
+            var newUserCustomer = new UserCustomer()
             {
-                UserName = users.NewUser.Email,
-                Email = users.NewUser.Email,
-                Permision = users.NewUser.Permission                
+                Customer = userCustomer.Customer,
+                User = newUser,
+                Owner = userCustomer.Owner
             };
+
+            _context.UserCustomer.Add(newUserCustomer);
+
+
+            var userEvent = new UserEvent()
+            {
+                Event = selectedEvent,
+                User = newUser
+            };
+
+            await _context.UserEvents.AddAsync(userEvent);
 
             var result = await _userManager.CreateAsync(newUser, users.NewUser.Password);
 
@@ -207,25 +251,6 @@ namespace CheckIN.Controllers
 
                 await _userManager.AddToRoleAsync(newUser, users.NewUser.Permission.ToString());
 
-                newUser = await _userManager.FindByEmailAsync(users.NewUser.Email);
-                var owner = await _context.Users.FirstOrDefaultAsync(x => x.Id == userCustomer.OwnerId);
-
-                var newUserCustomer = new UserCustomer()
-                {
-                    Customer = customer,
-                    User = newUser,
-                    Owner = owner
-                };
-
-                _context.UserCustomer.Add(newUserCustomer);
-
-
-                var selectedEvent = await _context.UserEvents
-                    .Include(x => x.User)
-                    .Include(x => x.Event)
-                    .FirstOrDefaultAsync(x => x.UserId == owner.Id);
-
-                await _context.SaveChangesAsync();
                 return RedirectToAction("Users", "Admin");
             }
             else
@@ -327,7 +352,9 @@ namespace CheckIN.Controllers
         private async Task<UserCustomer> GetCurrentUserCustomerAsync()
         {
             var userId = _userManager.GetUserId(User);
-            var userCustomer = await _context.UserCustomer.FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.Customer)
+                .FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
 
             return userCustomer;
         }

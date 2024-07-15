@@ -215,6 +215,27 @@ namespace CheckIN.Controllers
 
                         userCustomer.Customer.TitoAccounts.Add(titoAcc);
                     }
+
+                    var accountEvents = await _tiToService.GetEventsAsync(userCustomer.Customer.TitoToken, acc);
+
+                    var titoResponse = JsonConvert.DeserializeObject<TitoEventResponse>(accountEvents!);
+
+                    if (titoResponse.Events != null)
+                    {
+                        foreach (var titoEvent in titoResponse.Events)
+                        {
+                            var eventEntity = _mapper.Map<Event>(titoEvent);
+                            eventEntity.CustomerId = userCustomer.Customer.Id;
+
+                            var isEventExist = await _context.Events.FirstOrDefaultAsync(x => x.Title == eventEntity.Title);
+
+                            if (isEventExist == null)
+                            {
+                                await _context.Events.AddAsync(eventEntity);
+                            }
+                        }
+                    }
+
                 }
 
                 var selectedAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
@@ -225,34 +246,34 @@ namespace CheckIN.Controllers
                     return this.View(userCustomer);
                 }
 
-                var addEvents = await _tiToService.GetEventsAsync(userCustomer.Customer.TitoToken, selectedAccount.Name);
+                //var addEvents = await _tiToService.GetEventsAsync(userCustomer.Customer.TitoToken, selectedAccount.Name);
 
-                var titoEventsDeserializer = JsonConvert.DeserializeObject<TitoEventResponse>(addEvents!);
+                //var titoEventsDeserializer = JsonConvert.DeserializeObject<TitoEventResponse>(addEvents!);
 
-                if (titoEventsDeserializer.Events != null)
-                {
-                    foreach (var titoEvent in titoEventsDeserializer.Events)
-                    {
-                        var eventEntity = _mapper.Map<Event>(titoEvent);
-                        eventEntity.CustomerId = selectedAccount.CustomerId;
+                //if (titoEventsDeserializer.Events != null)
+                //{
+                //    foreach (var titoEvent in titoEventsDeserializer.Events)
+                //    {
+                //        var eventEntity = _mapper.Map<Event>(titoEvent);
+                //        eventEntity.CustomerId = selectedAccount.CustomerId;
 
-                        if (selectedAccount.Events == null)
-                        {
-                            selectedAccount.Events = new List<Event>();
-                        }
+                //        if (selectedAccount.Events == null)
+                //        {
+                //            selectedAccount.Events = new List<Event>();
+                //        }
 
-                        var existingEvent = selectedAccount.Events.FirstOrDefault(x => x.Slug == eventEntity.Slug);
+                //        var existingEvent = selectedAccount.Events.FirstOrDefault(x => x.Slug == eventEntity.Slug);
 
-                        if (existingEvent != null)
-                        {
-                            existingEvent = eventEntity;
-                        }
-                        else
-                        {
-                            selectedAccount.Events.Add(eventEntity);
-                        }
-                    }
-                }
+                //        if (existingEvent != null)
+                //        {
+                //            existingEvent = eventEntity;
+                //        }
+                //        else
+                //        {
+                //            selectedAccount.Events.Add(eventEntity);
+                //        }
+                //    }
+                //}
 
                 await _context.SaveChangesAsync();
 
@@ -359,7 +380,7 @@ namespace CheckIN.Controllers
 
                 foreach (var ev in result.Events)
                 {       
-                    if(!titoAccount.Events.Any(x => x.AccountSlug == ev.AccountSlug))
+                    if(!titoAccount.Events.Any(x => x.Title == ev.Title))
                     {
                         var newEvent = new Event();
                         _mapper.Map(ev, newEvent);

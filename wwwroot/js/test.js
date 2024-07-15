@@ -35,7 +35,7 @@
 
                 for (let i = 0; i < data.events.length; i++) {
                     let option = document.createElement("option");
-                    let title = data.events[i].title;
+                    let title = data.events[i].slug;
                     option.value = title;
                     option.textContent = title;
                     eventDropdown.appendChild(option);

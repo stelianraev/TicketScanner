@@ -107,7 +107,7 @@ namespace CheckIN.Controllers
                 }
             }
 
-            if(selectedEvent != null)
+            if (selectedEvent != null)
             {
                 settingsModel.TitoSettings.Authenticate.SelectedEvent = selectedEvent!.Slug;
             }
@@ -124,40 +124,51 @@ namespace CheckIN.Controllers
         [HttpPost]
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
-            var user = await _userManager.GetUserAsync(User);
+            //var user = await _userManager.GetUserAsync(User);
 
-            var userCustomer = await _context.UserCustomer
+            var userCustomer = await GetCurrentUserCustomerAsync();
+
+            var titoAccounts = await _context.TitoAccounts
                 .Include(x => x.Customer)
-                    .ThenInclude(x => x.TitoAccounts)
-                        .ThenInclude(x => x.Events)
-                .FirstOrDefaultAsync(x => x.UserId == user.Id!);
+                .Where(x => x.CustomerId == userCustomer.CustomerId)
+                .ToListAsync();
 
-            //var customerSettings = _context.CustomerSettings.FirstOrDefault(x => x.CustomerId == user!.CustomerId);
+            var events = await _context.Events
+                .Where(x => x.CustomerId == userCustomer.CustomerId)
+                .ToListAsync();
+
+            //var userCustomer = await _context.UserCustomer
+            //    .Include(x => x.User)
+            //    .Include(x => x.Customer)
+            //    .FirstOrDefaultAsync(x => x.UserId == user.Id);
+
+            
 
             if (userCustomer.Customer.TitoToken == null)
             {
-                userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;                
+                userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;
             }
 
-            var titoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
-            var titoEvent = titoAccount.Events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
+            var selectedtitoAccount = titoAccounts.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
+            var selectedEvent = events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
+            //var titoEvent = titoAccount.Events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
 
-            if (titoAccount != null)
+            if (selectedtitoAccount != null)
             {
-                titoAccount.IsSelected = true;
+                selectedtitoAccount.IsSelected = true;
             }
 
-            foreach (var acc in userCustomer.Customer.TitoAccounts.Where(x => x.Id != titoAccount.Id))
+            foreach (var acc in titoAccounts.Where(x => x.Id != selectedtitoAccount.Id))
             {
                 acc.IsSelected = false;
             }
 
-            if (titoEvent != null)
+            if (selectedEvent != null)
             {
-                titoEvent.IsSelected = true;
+                selectedEvent.IsSelected = true;
             }
 
-            foreach (var acc in titoAccount.Events.Where(x => x.Slug != titoEvent.Slug))
+            foreach (var acc in events.Where(x => x.Slug != selectedEvent.Slug))
             {
                 acc.IsSelected = false;
             }
@@ -165,7 +176,7 @@ namespace CheckIN.Controllers
             await _context.SaveChangesAsync();
 
             adminSettingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
-            adminSettingsModel.TitoSettings.Authenticate.Events = titoAccount?.Events?.Select(x => x.Title).ToList();
+            adminSettingsModel.TitoSettings.Authenticate.Events = selectedtitoAccount?.Events?.Select(x => x.Slug).ToList();
 
             this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings?.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedTitoAccount", adminSettingsModel.TitoSettings?.Authenticate.SelectedAccount!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
@@ -183,13 +194,23 @@ namespace CheckIN.Controllers
         [HttpGet]
         public async Task<IActionResult> Users()
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            //var currentUser = await _userManager.GetUserAsync(User);
+            var userCustomer = await GetCurrentUserCustomerAsync();
 
-            var selectedEvent = _context.UserEvents
-                .Include(x => x.Event)
-                .FirstOrDefault(x => x.UserId == currentUser.Id && x.Event.IsSelected == true);
+            //var userCustomer = await _context.UserCustomer
+            //.Include(x => x.User)
+            //.Include(x => x.Customer)
+            //.FirstOrDefaultAsync(x => x.UserId == currentUser.Id);
+
+            var selectedAccount = await _context.TitoAccounts
+                .Include(x => x.Events)
+                .FirstOrDefaultAsync(x => x.CustomerId == userCustomer.CustomerId && x.IsSelected == true);
+
+            var selectedEvent = selectedAccount.Events
+                .FirstOrDefault(x => x.IsSelected == true);
 
             var usersFormModelList = new UsersFormModel();
+            usersFormModelList.SelectedEvent = selectedEvent.Title;
 
             if (selectedEvent == null)
             {
@@ -200,7 +221,7 @@ namespace CheckIN.Controllers
             var users = _context.UserEvents
                 .Include(x => x.Event)
                 .Include(x => x.User)
-                .Where(x => x.EventId == selectedEvent.EventId && x.UserId != currentUser.Id)
+                .Where(x => x.EventId == selectedEvent.EventId && x.UserId != userCustomer.UserId)
                 .ToList();
 
             usersFormModelList.Users = new List<UserFormModel>();
@@ -233,7 +254,7 @@ namespace CheckIN.Controllers
             return this.View();
         }
 
-        [HttpGet]     
+        [HttpGet]
         public IActionResult CheckIn()
         {
             return RedirectToAction("Index", "CheckIn");
@@ -244,5 +265,15 @@ namespace CheckIN.Controllers
         //{
 
         //}
+
+        private async Task<UserCustomer> GetCurrentUserCustomerAsync()
+        {
+            var userId = _userManager.GetUserId(User);
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.Customer)
+                .FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
+
+            return userCustomer;
+        }
     }
 }
