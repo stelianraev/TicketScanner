@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
 </head>
 <body>
+    <text>Event: @Model.SelectedEvent</text>
     <section class="adminPage">
         <aside class="adminBar">
             <a href="/Admin/AdminSettings">Settings</a>
@@ -38,7 +39,7 @@
                     </div>
                     <div class="form-group">
                         <label for="NewUser_Permission">Permission:</label>
-                        <select asp-for="NewUser.Permission" asp-items="Html.GetEnumSelectList<Permission>()" class="form-control"></select>
+                        <select asp-for="NewUser.Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
                         <span asp-validation-for="NewUser.Permission" class="small text-danger"></span>
                     </div>
                 </section>

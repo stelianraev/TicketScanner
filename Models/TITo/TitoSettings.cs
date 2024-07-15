@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CheckIN.Data.Model;
+using System.ComponentModel.DataAnnotations;
 
 namespace CheckIN.Models.TITo
 {

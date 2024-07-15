@@ -6,6 +6,8 @@ namespace CheckIN.Models.ViewModels
     {
         public List<UserFormModel>? Users { get; set; }
         public UserFormModel NewUser { get; set; }
+
+        public string? SelectedEvent { get; set; }
     }
 
     public class UserFormModel
