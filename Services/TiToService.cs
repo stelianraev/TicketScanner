@@ -1,5 +1,4 @@
 ﻿using CheckIN.Configuration;
-using CheckIN.Models.TITo;
 using Microsoft.Extensions.Options;
 
 namespace CheckIN.Services
@@ -59,6 +58,30 @@ namespace CheckIN.Services
         public async Task<string> GetTicketAsync(string titoToken, string checkInListId, string ticketId)
         {
             string endpoint = checkInListId + "/tickets/" + ticketId;
+            string url = _tiToConfiguration.BaseUrl + endpoint;
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                //TODO
+                // Log the error or handle it accordingly
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> GetAllTicketsAsync(string titoToken, string accountSlug, string eventSlug)
+        {
+            string endpoint = accountSlug + "/"  + eventSlug + "/tickets";
             string url = _tiToConfiguration.BaseUrl + endpoint;
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);

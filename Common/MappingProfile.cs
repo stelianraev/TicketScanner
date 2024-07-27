@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CheckIN.Data.Model;
 using CheckIN.Models.TITo.Event;
+using CheckIN.Models.TITo.Ticket;
 
 namespace CheckIN.Common
 {
@@ -28,6 +29,9 @@ namespace CheckIN.Common
             .ForMember(dest => dest.Live, opt => opt.MapFrom(src => src.Live))
             .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
             .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate));
+
+            CreateMap<TitoTicket, Ticket>()
+                .ForMember(x => x.DiscountCodeUsed, opt => opt.MapFrom(src => src.DiscountCodeUsed));
         }
     }
 }

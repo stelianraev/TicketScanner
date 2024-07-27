@@ -1,0 +1,62 @@
+﻿@model List<TicketViewModel>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminPanel</title>
+    <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
+</head>
+<body>
+    @* <text>Event: @Model.SelectedEvent</text> *@
+    <section class="adminPage">
+        <aside class="adminBar">
+            <a href="/Admin/AdminSettings">Settings</a>
+            <a href="/Admin/Events">Events</a>
+            <a href="/Admin/Tickets">Tickets</a>
+            <a href="/Admin/Users">Users</a>
+            <a href="/Admin/Scanner">Scanner</a>
+            <a href="/Admin/Registration">Registration</a>
+            <a href="/Admin/CheckIn">CheckIn</a>
+            <a href="/Admin/Analytics">Analytics</a>
+        </aside>
+
+        <section class="admin">
+            <h1>Tickets</h1>
+
+            <div class="table-container">
+                <table>
+                    @{
+                        @if (Model.Any())
+                        {
+                            <tr>
+                                <th>Email</th>
+                                <th>Permission</th>
+                            </tr>
+
+                            foreach (TicketViewModel ticket in Model)
+                            {
+                                <tr>
+                                    <td>@ticket.Email</td>
+                                    <td>@ticket.FirstName</td>
+                                    <td>@ticket.LastName</td>
+                                    <td>@ticket.CompanyName</td>
+                                    <td>@ticket.PhoneNumber</td>
+                                    <td>
+                                        <a asp-action="" asp-controller="" asp-route-id="@ticket.Id" class="btn btn-primary">Edit</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <p>No Users</p>
+                        }
+                    }
+                </table>
+            </div>
+        </section>
+    </section>
+</body>
+</html>

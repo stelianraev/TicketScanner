@@ -1,6 +1,8 @@
-﻿using CheckIN.Data.Model;
+﻿using AutoMapper;
+using CheckIN.Data.Model;
 using CheckIN.Models;
 using CheckIN.Models.TITo;
+using CheckIN.Models.TITo.Ticket;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using Identity.Data;
@@ -20,13 +22,15 @@ namespace CheckIN.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly ITiToService _tiToService;
+        private readonly IMapper _mapper;
 
-        public AdminController(ITiToService titoservice, ApplicationDbContext context, UserManager<User> userManager, ILogger<AdminController> logger)
+        public AdminController(ITiToService titoservice, ApplicationDbContext context, UserManager<User> userManager, IMapper mapper, ILogger<AdminController> logger)
         {
             _logger = logger;
             _context = context;
             _userManager = userManager;
             _tiToService = titoservice;
+            _mapper = mapper;
         }
 
         //[HttpGet]
@@ -124,41 +128,28 @@ namespace CheckIN.Controllers
         [HttpPost]
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
-            //var user = await _userManager.GetUserAsync(User);
-
             var userCustomer = await GetCurrentUserCustomerAsync();
 
-            var titoAccounts = await _context.TitoAccounts
-                .Include(x => x.Customer)
+            var accountsAndEvents = await _context.TitoAccounts
+                .Include(x => x.Events)
+                    .ThenInclude(x => x.Tickets)
                 .Where(x => x.CustomerId == userCustomer.CustomerId)
-                .ToListAsync();
-
-            var events = await _context.Events
-                .Where(x => x.CustomerId == userCustomer.CustomerId)
-                .ToListAsync();
-
-            //var userCustomer = await _context.UserCustomer
-            //    .Include(x => x.User)
-            //    .Include(x => x.Customer)
-            //    .FirstOrDefaultAsync(x => x.UserId == user.Id);
-
-            
+                .ToListAsync();           
 
             if (userCustomer.Customer.TitoToken == null)
             {
                 userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;
             }
 
-            var selectedtitoAccount = titoAccounts.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
-            var selectedEvent = events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
-            //var titoEvent = titoAccount.Events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
+            var selectedtitoAccount = accountsAndEvents.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
+            var selectedEvent = selectedtitoAccount?.Events.FirstOrDefault(x => x.Slug == adminSettingsModel?.TitoSettings?.Authenticate?.SelectedEvent);
 
             if (selectedtitoAccount != null)
             {
                 selectedtitoAccount.IsSelected = true;
             }
 
-            foreach (var acc in titoAccounts.Where(x => x.Id != selectedtitoAccount.Id))
+            foreach (var acc in accountsAndEvents.Where(x => x.Id != selectedtitoAccount.Id))
             {
                 acc.IsSelected = false;
             }
@@ -168,9 +159,28 @@ namespace CheckIN.Controllers
                 selectedEvent.IsSelected = true;
             }
 
-            foreach (var acc in events.Where(x => x.Slug != selectedEvent.Slug))
+            foreach (var acc in selectedtitoAccount.Events.Where(x => x.Slug != selectedEvent.Slug))
             {
                 acc.IsSelected = false;
+            }
+
+            var tickets = await _tiToService.GetAllTicketsAsync(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+
+            var parsedTickets = JsonConvert.DeserializeObject<TitoTicketsResponse>(tickets);
+
+            if(parsedTickets != null && parsedTickets.Tickets.Any())
+            {
+                foreach (var titoTicket in parsedTickets.Tickets)
+                {
+                    var isTicketExist = selectedEvent.Tickets.FirstOrDefault(x => x.TicketId == titoTicket.Id);
+
+                    if (isTicketExist == null)
+                    {
+                        var newTicket = new Ticket();
+                        var ticket = _mapper.Map(titoTicket, newTicket);
+                        selectedEvent.Tickets.Add(ticket);
+                    }
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -194,13 +204,7 @@ namespace CheckIN.Controllers
         [HttpGet]
         public async Task<IActionResult> Users()
         {
-            //var currentUser = await _userManager.GetUserAsync(User);
             var userCustomer = await GetCurrentUserCustomerAsync();
-
-            //var userCustomer = await _context.UserCustomer
-            //.Include(x => x.User)
-            //.Include(x => x.Customer)
-            //.FirstOrDefaultAsync(x => x.UserId == currentUser.Id);
 
             var selectedAccount = await _context.TitoAccounts
                 .Include(x => x.Events)
@@ -240,6 +244,27 @@ namespace CheckIN.Controllers
             return this.View(usersFormModelList);
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> Tickets()
+        {
+            var userCustomer = await GetCurrentUserCustomerAsync();
+
+            var accountsAndEvents = await _context.TitoAccounts
+                .Include(x => x.Events)
+                .Where(x => x.CustomerId == userCustomer.CustomerId)
+                .ToListAsync();
+
+            var selectedtitoAccount = accountsAndEvents.FirstOrDefault(x => x.IsSelected);
+            var selectedEvent = selectedtitoAccount?.Events.FirstOrDefault(x => x.IsSelected);
+
+
+            var tickets = await _tiToService.GetAllTicketsAsync(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+
+            return null;
+        }
+
+
         //TODO maybe for analytics
         //[HttpGet]
         //public IActionResult Events()
@@ -259,12 +284,6 @@ namespace CheckIN.Controllers
         {
             return RedirectToAction("Index", "CheckIn");
         }
-
-        //[HttpGet]
-        //public IActionResult Tickets()
-        //{
-
-        //}
 
         private async Task<UserCustomer> GetCurrentUserCustomerAsync()
         {
