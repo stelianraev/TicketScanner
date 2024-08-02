@@ -1,5 +1,7 @@
 ﻿using CheckIN.Configuration;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace CheckIN.Services
 {
@@ -169,6 +171,60 @@ namespace CheckIN.Services
 
             request.Headers.Add("Authorization", "Token token=" + titoToken);
             request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> GetWebhookEndpoint(string titoToken, string accountSlug, string eventSlug, string id)
+        {
+            string url = _tiToConfiguration.BaseUrl + accountSlug + "/" + eventSlug + "/" + "webhook_endpoints";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> CreateWebhookEndpoint(string titoToken, string accountSlug, string eventSlug)
+        {
+            string url = _tiToConfiguration.BaseUrl + accountSlug + "/" + eventSlug + "/" + "webhook_endpoints";
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var requestBody = new
+            {
+                webhook_endpoint = new
+                {
+                    url = "https://webhook.site/c355603b-7573-49da-992b-023cad68db9c",
+                    included_triggers = new string[] { "ticket.created" }
+                }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(requestBody);
+            request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(request);
 

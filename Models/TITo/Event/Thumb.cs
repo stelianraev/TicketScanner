@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo.Event
 {
     public class Thumb
     {
-        [JsonProperty("url")]
+        [JsonPropertyName("url")]
         public string url { get; set; }
     }
 }

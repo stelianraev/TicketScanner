@@ -17,5 +17,9 @@ namespace CheckIN.Services
         public Task<string> AuthenticateAsync(string titoToken);
 
         public Task<string> GetEventsAsync(string titoToken, string accountId);
+
+        public Task<string> GetWebhookEndpoint(string titoToken, string accountSlug, string eventSlug, string id);
+
+        public Task<string> CreateWebhookEndpoint(string titoToken, string accountSlug, string eventSlug);
     }
 }

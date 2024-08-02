@@ -1,28 +1,28 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo.Event
 {
     public class Meta
     {
-        [JsonProperty("current_page")]
+        [JsonPropertyName("current_page")]
         public int CurrentPage { get; set; }
 
-        [JsonProperty("next_page")]
+        [JsonPropertyName("next_page")]
         public string NextPage { get; set; }
 
-        [JsonProperty("prev_page")]
+        [JsonPropertyName("prev_page")]
         public string PrevPage { get; set; }
 
-        [JsonProperty("total_pages")]
+        [JsonPropertyName("total_pages")]
         public int TotalPages { get; set; }
 
-        [JsonProperty("total_count")]
+        [JsonPropertyName("total_count")]
         public int TotalCount { get; set; }
 
-        [JsonProperty("per_page")]
+        [JsonPropertyName("per_page")]
         public int PerPage { get; set; }
 
-        [JsonProperty("filter_options")]
+        [JsonPropertyName("filter_options")]
         public FilterOption FilterOptions { get; set; }
     }
 }

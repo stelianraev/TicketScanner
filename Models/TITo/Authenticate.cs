@@ -1,19 +1,19 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo
 {
     public class Authenticate
     {
-        [JsonProperty("authenticated")]
+        [JsonPropertyName("authenticated")]
         public bool Authenticated { get; set; }
 
-        [JsonProperty("access_token")]
+        [JsonPropertyName("access_token")]
         public string AccessToken { get; set; }
 
-        [JsonProperty("lookup_mode")]
+        [JsonPropertyName("lookup_mode")]
         public string LookupMode { get; set; }
 
-        [JsonProperty("accounts")]
+        [JsonPropertyName("accounts")]
         public List<string> Accounts { get; set; }
 
         public string SelectedAccount { get; set; }

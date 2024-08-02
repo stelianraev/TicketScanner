@@ -3,6 +3,7 @@ using CheckIN.Data.Model;
 using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.TITo.Ticket;
+using CheckIN.Models.TITo.Webhook;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using Identity.Data;
@@ -183,6 +184,14 @@ namespace CheckIN.Controllers
                 }
             }
 
+            var webhooks = await _tiToService.GetWebhookEndpoint(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug, null);
+            var parsedWebhooks = JsonConvert.DeserializeObject<WebhookResponse>(webhooks);
+
+            if(parsedWebhooks?.WebhookEndpints == null || !parsedWebhooks.WebhookEndpints.Any())
+            {
+                var newWebhook = await _tiToService.CreateWebhookEndpoint(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+            }
+
             await _context.SaveChangesAsync();
 
             adminSettingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
@@ -252,25 +261,15 @@ namespace CheckIN.Controllers
 
             var accountsAndEvents = await _context.TitoAccounts
                 .Include(x => x.Events)
-                .Where(x => x.CustomerId == userCustomer.CustomerId)
-                .ToListAsync();
+                    .ThenInclude(x => x.Tickets)
+                    .FirstOrDefaultAsync(x => x.IsSelected);
 
-            var selectedtitoAccount = accountsAndEvents.FirstOrDefault(x => x.IsSelected);
-            var selectedEvent = selectedtitoAccount?.Events.FirstOrDefault(x => x.IsSelected);
+            var selectedEvent = accountsAndEvents?.Events.FirstOrDefault(x => x.IsSelected);
 
+            var titoTickets = _mapper.Map(selectedEvent.Tickets, new List<TitoTicket>());
 
-            var tickets = await _tiToService.GetAllTicketsAsync(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug);
-
-            return null;
+            return this.View(titoTickets);
         }
-
-
-        //TODO maybe for analytics
-        //[HttpGet]
-        //public IActionResult Events()
-        //{
-        //   return RedirectToAction("Event", "Tito");
-        //}
 
         [HttpPost]
         public IActionResult Events(Authenticate authenticate)

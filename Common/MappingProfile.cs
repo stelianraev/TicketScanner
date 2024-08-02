@@ -31,6 +31,7 @@ namespace CheckIN.Common
             .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate));
 
             CreateMap<TitoTicket, Ticket>()
+                .ForMember(x => x.TicketId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(x => x.DiscountCodeUsed, opt => opt.MapFrom(src => src.DiscountCodeUsed));
         }
     }

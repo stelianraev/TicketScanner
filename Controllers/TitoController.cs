@@ -329,10 +329,10 @@ namespace CheckIN.Controllers
                 }
 
                 var ticketModel = new TicketViewModel();
-                ticketModel.FirstName = result.FirstName;
-                ticketModel.LastName = result.LastName;
-                ticketModel.CompanyName = result.CompanyName;
-                ticketModel.Tags = result.Tags;
+                //ticketModel.FirstName = result.FirstName;
+                //ticketModel.LastName = result.LastName;
+                //ticketModel.CompanyName = result.CompanyName;
+                //ticketModel.Tags = result.Tags;
                 ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
@@ -376,7 +376,7 @@ namespace CheckIN.Controllers
             {
                 return BadRequest("Bad Request");
                 //todo
-            }            
+            }
         }
 
         [HttpPost]
@@ -434,6 +434,34 @@ namespace CheckIN.Controllers
                 // Logging exception
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        [HttpPost]
+        [Route("Webhook")]
+        public async Task<IActionResult> Webhook([FromBody] TitoTicket ticket)
+        {
+            var accountsAndEvents = await _context.TitoAccounts
+               .Include(x => x.Events)
+                   .ThenInclude(x => x.Tickets)
+               .FirstOrDefaultAsync(x => x.IsSelected);
+
+            var selectedEvent = accountsAndEvents?.Events.FirstOrDefault(x => x.IsSelected);
+
+            if (selectedEvent != null)
+            {
+                var existingTicket = selectedEvent.Tickets.FirstOrDefault(x => x.TicketId == ticket.Id);
+
+                if (existingTicket == null)
+                {
+                    var newTicket = new Ticket();
+                    var ticketMap = _mapper.Map(ticket, newTicket);
+                    selectedEvent.Tickets.Add(ticketMap);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 
