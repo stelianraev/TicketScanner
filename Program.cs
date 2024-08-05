@@ -1,12 +1,10 @@
 using CheckIN.Common;
 using CheckIN.Configuration;
 using CheckIN.Data.Model;
-using CheckIN.Middleware;
 using CheckIN.Services;
 using CheckIN.Services.Cache;
 using CheckIN.Services.Customer;
 using Identity.Data;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
@@ -51,7 +49,7 @@ namespace CheckIN
 
             var connectionString = builder.Configuration.GetConnectionString("DatabaseConnection") ?? throw new InvalidOperationException("Connection string 'DatabaseConnection' not found.");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlServer(connectionString), ServiceLifetime.Transient);
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

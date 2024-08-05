@@ -4,6 +4,7 @@ using CheckIN.Data.Model;
 using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.TITo.Event;
+using CheckIN.Models.TITo.Ticket;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using Identity.Data;
@@ -11,6 +12,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CheckIN.Controllers
 {
@@ -75,7 +78,7 @@ namespace CheckIN.Controllers
                 var connectToTitoResponse = await _tiToService.AuthenticateAsync(titoSettings!.Token);
 
                 if (connectToTitoResponse == "null" || connectToTitoResponse == "Unauthorized")
-                {                    
+                {
                     ModelState.AddModelError("Token", "Invalid token! Please enter a valid ti.to token.");
                     return BadRequest(ModelState);
                 }
@@ -167,6 +170,7 @@ namespace CheckIN.Controllers
         {
             try
             {
+                //TODO Reduce DB requests
                 var user = await _userManager.GetUserAsync(User);
 
                 var userCustomer = await _context.UserCustomer
@@ -193,6 +197,7 @@ namespace CheckIN.Controllers
                     return BadRequest(ModelState);
                 }
 
+                //Getting Accounts
                 var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse!);
 
                 if (userCustomer!.Customer.TitoAccounts == null)
@@ -216,6 +221,7 @@ namespace CheckIN.Controllers
                         userCustomer.Customer.TitoAccounts.Add(titoAcc);
                     }
 
+                    //Getting Events
                     var accountEvents = await _tiToService.GetEventsAsync(userCustomer.Customer.TitoToken, acc);
 
                     var titoResponse = JsonConvert.DeserializeObject<TitoEventResponse>(accountEvents!);
@@ -235,7 +241,6 @@ namespace CheckIN.Controllers
                             }
                         }
                     }
-
                 }
 
                 var selectedAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
@@ -324,10 +329,10 @@ namespace CheckIN.Controllers
                 }
 
                 var ticketModel = new TicketViewModel();
-                ticketModel.FirstName = result.FirstName;
-                ticketModel.LastName = result.LastName;
-                ticketModel.CompanyName = result.CompanyName;
-                ticketModel.Tags = result.Tags;
+                //ticketModel.FirstName = result.FirstName;
+                //ticketModel.LastName = result.LastName;
+                //ticketModel.CompanyName = result.CompanyName;
+                //ticketModel.Tags = result.Tags;
                 ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
@@ -343,22 +348,43 @@ namespace CheckIN.Controllers
         }
 
         [HttpPost]
+        [Route("Tickets")]
+        public async Task<IActionResult> GetAllEventTickets(string titoToken, string accountSlug, string eventSlug)
+        {
+            //var checkListId = this.Request.Cookies["CheckInListId"];
+            //var token = this.Request.Cookies["TiToToken"];
+
+            if (string.IsNullOrEmpty(titoToken))
+            {
+                return BadRequest("Missing token.");
+            }
+
+            try
+            {
+                var response = await _tiToService.GetAllTicketsAsync(titoToken, accountSlug, eventSlug);
+
+                var result = JsonConvert.DeserializeObject<TitoTicket[]>(response);
+
+                if (result == null)
+                {
+                    return NotFound("Ticket data is null after deserialization.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Bad Request");
+                //todo
+            }
+        }
+
+        [HttpPost]
         [Route("Event")]
         public async Task<IActionResult> Event([FromBody] EventRequestModel titoSettings)
         {
             try
             {
-                //var user = await _userManager.GetUserAsync(User);
-
-                //var userCustomer = await _context.UserCustomer
-                //    .Include(x => x.Customer)
-                //    .Include(x => x.Customer.TitoAccounts)
-                //    .FirstOrDefaultAsync(x => x.UserId == user.Id);
-
-                //var titoAccountId = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
-
-                //if (titoAccountId == null)
-                //{
                 var getEventsResponse = await _tiToService.GetEventsAsync(titoSettings!.Token, titoSettings!.Account);
 
                 var result = JsonConvert.DeserializeObject<TitoEventResponse>(getEventsResponse);
@@ -379,8 +405,8 @@ namespace CheckIN.Controllers
                 }
 
                 foreach (var ev in result.Events)
-                {       
-                    if(!titoAccount.Events.Any(x => x.Title == ev.Title))
+                {
+                    if (!titoAccount.Events.Any(x => x.Title == ev.Title))
                     {
                         var newEvent = new Event();
                         _mapper.Map(ev, newEvent);
@@ -394,53 +420,12 @@ namespace CheckIN.Controllers
                         };
 
                         newEvent.UserEvents.Add(newUserEvent);
-                        newEvent.Customer = userCustomer.Customer;                       
+                        newEvent.Customer = userCustomer.Customer;
                         titoAccount.Events.Add(newEvent);
                     }
                 }
 
                 await _context.SaveChangesAsync();
-
-                //var userCustomer = await _context.UserCustomer
-                //    .Include(x => x.Customer)
-                //        .ThenInclude(x => x.TitoAccounts)
-                //            .ThenInclude(x => x.Events)
-                //    .FirstOrDefaultAsync(x => x.UserId == user.Id!);
-
-
-                //}
-
-                //if (getEventsResponse == "null" || getEventsResponse == "Unauthorized")
-                //{
-                //    ModelState.AddModelError("Token", "Invalid token! Please enter a valid ti.to token.");
-                //    return BadRequest(ModelState);
-                //}
-
-                //var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse!);
-
-                //if (userCustomer!.Customer.TitoAccounts == null)
-                //{
-                //    userCustomer.Customer.TitoAccounts = new List<TitoAccount>();
-                //}
-
-                //foreach (var acc in authenticate.Accounts)
-                //{
-                //    var isAccountExist = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.Name == acc);
-
-                //    if (isAccountExist == null)
-                //    {
-                //        var titoAcc = new TitoAccount()
-                //        {
-                //            Name = acc,
-                //            CustomerId = userCustomer.Customer.Id,
-                //            Events = new List<Event>()
-                //        };
-
-                //        userCustomer.Customer.TitoAccounts.Add(titoAcc);
-                //    }
-                //}
-
-                //await _context.SaveChangesAsync();
 
                 return Ok(result);
             }
@@ -449,6 +434,34 @@ namespace CheckIN.Controllers
                 // Logging exception
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        [HttpPost]
+        [Route("Webhook")]
+        public async Task<IActionResult> Webhook([FromBody] TitoTicket ticket)
+        {
+            var accountsAndEvents = await _context.TitoAccounts
+               .Include(x => x.Events)
+                   .ThenInclude(x => x.Tickets)
+               .FirstOrDefaultAsync(x => x.IsSelected);
+
+            var selectedEvent = accountsAndEvents?.Events.FirstOrDefault(x => x.IsSelected);
+
+            if (selectedEvent != null)
+            {
+                var existingTicket = selectedEvent.Tickets.FirstOrDefault(x => x.TicketId == ticket.Id);
+
+                if (existingTicket == null)
+                {
+                    var newTicket = new Ticket();
+                    var ticketMap = _mapper.Map(ticket, newTicket);
+                    selectedEvent.Tickets.Add(ticketMap);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 

@@ -1,16 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo.Event
 {
     public class Logo
     {
-        [JsonProperty("url")]
+        [JsonPropertyName("url")]
         public string Url { get; set; }
 
-        [JsonProperty("thumb")]
+        [JsonPropertyName("thumb")]
         public Thumb Thumb { get; set; }
 
-        [JsonProperty("display")]
+        [JsonPropertyName("display")]
         public Display Display { get; set; }
     }
 }

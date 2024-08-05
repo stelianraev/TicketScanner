@@ -4,17 +4,17 @@
     {
         public int Id { get; set; }
         public string Slug { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string FullName { get; set; }
         public string Email { get; set; }
+        public string JobPosition { get; set; }
         public string PhoneNumber { get; set; }
         public string CompanyName { get; set; }
-        public string ReleaseTitle { get; set; }
-        public string Reference { get; set; }
-        public string RegistrationReference { get; set; }
+        public string TicketType { get; set; }
         public string Tags { get; set; }
+
+        public bool IsScanned { get; set; }
+
         public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
 
         public string VCard { get; set; }
     }

@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo.Event
 {
     public class State
     {
-        [JsonProperty("label")]
+        [JsonPropertyName("label")]
         public string Label { get; set; }
 
-        [JsonProperty("open")]
+        [JsonPropertyName("open")]
         public bool Open { get; set; }
     }
 }

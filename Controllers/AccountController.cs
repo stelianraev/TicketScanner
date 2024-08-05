@@ -157,21 +157,22 @@ namespace CheckIN.Controllers
         [Authorize(Roles = "Admin, Owner")]
         public async Task<IActionResult> UserRegistration(UsersFormModel users)
         {
+            //TODO Reduce db requests
             var userCustomer = await GetCurrentUserCustomerAsync();
-
 
             if (userCustomer.CustomerId == Guid.Empty)
             {
                 return Unauthorized();
             }
 
-            var existingUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
 
             var selectedAccount = await _context.TitoAccounts
                 .Include(x => x.Events)
                 .FirstOrDefaultAsync(x => x.CustomerId == userCustomer.CustomerId && x.IsSelected == true);
 
-            var selectedEvent = selectedAccount.Events
+            var selectedEvent = selectedAccount?.Events
               .FirstOrDefault(x => x.IsSelected == true);
 
             var userEvents = await _context.UserEvents
@@ -197,8 +198,6 @@ namespace CheckIN.Controllers
                 }
                 else
                 {
-
-                    newUser.Email = existingUser.Email;
                     newUser.UserName = existingUser.UserName;                    
 
                     var newUserEvent = new UserEvent()
@@ -218,9 +217,7 @@ namespace CheckIN.Controllers
             if (!ModelState.IsValid)
             {
                 return View(users.NewUser);
-            }
-
-                  
+            }        
 
             var newUserCustomer = new UserCustomer()
             {
@@ -230,7 +227,6 @@ namespace CheckIN.Controllers
             };
 
             _context.UserCustomer.Add(newUserCustomer);
-
 
             var userEvent = new UserEvent()
             {

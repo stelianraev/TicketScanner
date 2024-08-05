@@ -1,19 +1,19 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo.Event
 {
     public class FilterOption
     {
-        [JsonProperty("sections")]
+        [JsonPropertyName("sections")]
         public Section Section { get; set; }
 
-        [JsonProperty("collection")]
+        [JsonPropertyName("collection")]
         public bool Collection { get; set; }
 
-        [JsonProperty("states")]
+        [JsonPropertyName("states")]
         public List<State> States { get; set; }
 
-        [JsonProperty("selected_states")]
+        [JsonPropertyName("selected_states")]
         public List<string> SelectedStates { get; set; }
     }
 }

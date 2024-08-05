@@ -1,6 +1,7 @@
 ﻿using CheckIN.Configuration;
-using CheckIN.Models.TITo;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace CheckIN.Services
 {
@@ -59,6 +60,30 @@ namespace CheckIN.Services
         public async Task<string> GetTicketAsync(string titoToken, string checkInListId, string ticketId)
         {
             string endpoint = checkInListId + "/tickets/" + ticketId;
+            string url = _tiToConfiguration.BaseUrl + endpoint;
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                //TODO
+                // Log the error or handle it accordingly
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> GetAllTicketsAsync(string titoToken, string accountSlug, string eventSlug)
+        {
+            string endpoint = accountSlug + "/"  + eventSlug + "/tickets";
             string url = _tiToConfiguration.BaseUrl + endpoint;
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -146,6 +171,60 @@ namespace CheckIN.Services
 
             request.Headers.Add("Authorization", "Token token=" + titoToken);
             request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> GetWebhookEndpoint(string titoToken, string accountSlug, string eventSlug, string id)
+        {
+            string url = _tiToConfiguration.BaseUrl + accountSlug + "/" + eventSlug + "/" + "webhook_endpoints";
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return response.StatusCode.ToString();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            return content;
+        }
+
+        public async Task<string> CreateWebhookEndpoint(string titoToken, string accountSlug, string eventSlug)
+        {
+            string url = _tiToConfiguration.BaseUrl + accountSlug + "/" + eventSlug + "/" + "webhook_endpoints";
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            request.Headers.Add("Authorization", "Token token=" + titoToken);
+            request.Headers.Add("Accept", "application/json");
+
+            var requestBody = new
+            {
+                webhook_endpoint = new
+                {
+                    url = "https://duncan.serveo.net/Webhook",
+                    included_triggers = new string[] { "ticket.created" }
+                }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(requestBody);
+            request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(request);
 

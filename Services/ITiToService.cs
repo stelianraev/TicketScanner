@@ -10,10 +10,16 @@ namespace CheckIN.Services
 
         public Task<string> GetTicketAsync(string titoToken, string checkListId, string ticketId);
 
+        public Task<string> GetAllTicketsAsync(string titoToken, string accountSlug, string eventSlug);
+
         public Task<byte[]> GetVCardAsync(string titoToken, string ticketId);
 
         public Task<string> AuthenticateAsync(string titoToken);
 
         public Task<string> GetEventsAsync(string titoToken, string accountId);
+
+        public Task<string> GetWebhookEndpoint(string titoToken, string accountSlug, string eventSlug, string id);
+
+        public Task<string> CreateWebhookEndpoint(string titoToken, string accountSlug, string eventSlug);
     }
 }

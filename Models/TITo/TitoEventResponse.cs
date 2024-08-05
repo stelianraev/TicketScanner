@@ -1,14 +1,14 @@
 ﻿using CheckIN.Models.TITo.Event;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo
 {
     public class TitoEventResponse
     {
-        [JsonProperty("events")]
+        [JsonPropertyName("events")]
         public EventResponse[] Events { get; set; }
 
-        [JsonProperty("meta")]
+        [JsonPropertyName("meta")]
         public Meta Meta { get; set; }
     }
 }

@@ -1,97 +1,97 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace CheckIN.Models.TITo.Event
 {
     public class EventResponse
     {
-        [JsonProperty("_type")]
+        [JsonPropertyName("_type")]
         public string Type { get; set; }
 
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public int Id { get; set; }
 
-        [JsonProperty("created_at")]
+        [JsonPropertyName("created_at")]
         public string CreatedAt { get; set; }
 
-        [JsonProperty("updated_at")]
+        [JsonPropertyName("updated_at")]
         public string UpdatedAt { get; set; }
 
-        [JsonProperty("title")]
+        [JsonPropertyName("title")]
         public string Title { get; set; }
 
-        [JsonProperty("description")]
+        [JsonPropertyName("description")]
         public string Description { get; set; }
 
-        [JsonProperty("banner")]
+        [JsonPropertyName("banner")]
         public Banner Banner { get; set; }
 
-        [JsonProperty("banner_url")]
+        [JsonPropertyName("banner_url")]
         public string BannerUrl { get; set; }
 
-        [JsonProperty("currency")]
+        [JsonPropertyName("currency")]
         public string Currency { get; set; }
 
-        [JsonProperty("default_locale")]
+        [JsonPropertyName("default_locale")]
         public string DefaultLocale { get; set; }
 
-        [JsonProperty("live")]
+        [JsonPropertyName("live")]
         public bool Live { get; set; }
 
-        [JsonProperty("test_mode")]
+        [JsonPropertyName("test_mode")]
         public bool TestMode { get; set; }
 
-        [JsonProperty("locales")]
+        [JsonPropertyName("locales")]
         public List<string> Locales { get; set; }
 
-        [JsonProperty("location")]
+        [JsonPropertyName("location")]
         public string Location { get; set; }
 
-        [JsonProperty("logo")]
+        [JsonPropertyName("logo")]
         public Logo Logo { get; set; }
 
-        [JsonProperty("private")]
+        [JsonPropertyName("private")]
         public bool Private { get; set; }
 
-        [JsonProperty("slug")]
+        [JsonPropertyName("slug")]
         public string Slug { get; set; }
 
-        [JsonProperty("account_id")]
+        [JsonPropertyName("account_id")]
         public string AccountId { get; set; }
 
-        [JsonProperty("start_date")]
+        [JsonPropertyName("start_date")]
         public string StartDate { get; set; }
 
-        [JsonProperty("end_date")]
+        [JsonPropertyName("end_date")]
         public string EndDate { get; set; }
 
-        [JsonProperty("date_or_range")]
+        [JsonPropertyName("date_or_range")]
         public string DateOrRange { get; set; }
 
-        [JsonProperty("security_token")]
+        [JsonPropertyName("security_token")]
         public string SecurityToken { get; set; }
 
-        [JsonProperty("metadata")]
+        [JsonPropertyName("metadata")]
         public MetaData MetaData { get; set; }
 
-        [JsonProperty("url")]
+        [JsonPropertyName("url")]
         public string Url { get; set; }
 
-        [JsonProperty("setup")]
+        [JsonPropertyName("setup")]
         public bool Setup { get; set; }
 
-        [JsonProperty("show_discount_code_field")]
+        [JsonPropertyName("show_discount_code_field")]
         public bool ShowDiscountCodeField { get; set; }
 
-        [JsonProperty("discount_codes_count")]
+        [JsonPropertyName("discount_codes_count")]
         public int DiscountCodesCount { get; set; }
 
-        [JsonProperty("account_slug")]
+        [JsonPropertyName("account_slug")]
         public string AccountSlug { get; set; }
 
-        [JsonProperty("users_count")]
+        [JsonPropertyName("users_count")]
         public int UsersCount { get; set; }
 
-        [JsonProperty("releases")]
+        [JsonPropertyName("releases")]
         public object[] Releases { get; set; }
     }
 }
