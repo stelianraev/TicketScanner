@@ -218,7 +218,7 @@ namespace CheckIN.Services
             {
                 webhook_endpoint = new
                 {
-                    url = "https://webhook.site/c355603b-7573-49da-992b-023cad68db9c",
+                    url = "https://duncan.serveo.net/Webhook",
                     included_triggers = new string[] { "ticket.created" }
                 }
             };

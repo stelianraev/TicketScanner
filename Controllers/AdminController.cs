@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Net;
 
 namespace CheckIN.Controllers
 {
@@ -266,9 +265,25 @@ namespace CheckIN.Controllers
 
             var selectedEvent = accountsAndEvents?.Events.FirstOrDefault(x => x.IsSelected);
 
-            var titoTickets = _mapper.Map(selectedEvent.Tickets, new List<TitoTicket>());
+            var ticketsViewList = new List<TicketViewModel>();
 
-            return this.View(titoTickets);
+            foreach(var ticket in selectedEvent.Tickets)
+            {
+                var newTicketViewModel = new TicketViewModel()
+                {
+                    FullName = ticket.FullName,
+                    CompanyName = ticket.CompanyName,
+                    JobPosition = ticket.JobTitle,
+                    Email = ticket.Email,
+                    CreatedAt = ticket.CreatedAt,
+                    IsScanned = ticket.IsScanned,
+                    PhoneNumber = ticket.PhoneNumber
+                };
+
+                ticketsViewList.Add(newTicketViewModel);
+            }
+
+            return this.View(ticketsViewList);
         }
 
         [HttpPost]

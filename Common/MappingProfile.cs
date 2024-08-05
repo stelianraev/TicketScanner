@@ -2,6 +2,7 @@
 using CheckIN.Data.Model;
 using CheckIN.Models.TITo.Event;
 using CheckIN.Models.TITo.Ticket;
+using CheckIN.Models.ViewModels;
 
 namespace CheckIN.Common
 {
@@ -32,7 +33,20 @@ namespace CheckIN.Common
 
             CreateMap<TitoTicket, Ticket>()
                 .ForMember(x => x.TicketId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(x => x.DiscountCodeUsed, opt => opt.MapFrom(src => src.DiscountCodeUsed));
+                .ForMember(x => x.DiscountCodeUsed, opt => opt.MapFrom(src => src.DiscountCodeUsed))
+                .ForMember(x => x.JobTitle, opt => opt.MapFrom(src => src.JobTitle));
+                           
+
+            CreateMap<Ticket, TicketViewModel>()
+                .ForMember(x => x.FullName, opt => opt.MapFrom(src => src.FirstName + " " + src.LastName))
+                .ForMember(x => x.Slug, opt => opt.MapFrom(src => src.Slug))
+                .ForMember(x => x.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(x => x.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(x => x.CompanyName, opt => opt.MapFrom(src => src.CompanyName))
+                //.ForMember(x => x.JobPosition, opt => opt.MapFrom(src => src.Posi))
+                //.ForMember(x => x.TicketType, opt => opt.MapFrom(src => src.))
+                //Vcard
+                .ForMember(x => x.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
         }
     }
 }

@@ -27,7 +27,7 @@ namespace CheckIN.Controllers
             try
             {
                 var printModel = new StringBuilder();
-                printModel.AppendLine("Name:" + request.DocumentContent?.FirstName + " " + request.DocumentContent?.LastName);
+                printModel.AppendLine("Name:" + request.DocumentContent?.FullName);
                 printModel.AppendLine("Email:" + request.DocumentContent?.Email);
                 printModel.AppendLine("Company Name:" + request.DocumentContent?.CompanyName);
                 printModel.AppendLine("Tags:" + request.DocumentContent?.Tags);
