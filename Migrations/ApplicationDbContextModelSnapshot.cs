@@ -84,6 +84,10 @@ namespace CheckIN.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -216,7 +220,7 @@ namespace CheckIN.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<int>("RegistrationId")
                         .HasColumnType("int");
@@ -238,7 +242,7 @@ namespace CheckIN.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPaid")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
