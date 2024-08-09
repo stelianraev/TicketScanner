@@ -4,6 +4,7 @@ using CheckIN.Data.Model;
 using CheckIN.Services;
 using CheckIN.Services.Cache;
 using CheckIN.Services.Customer;
+using CheckIN.Services.DbContext;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -88,6 +89,7 @@ namespace CheckIN
             builder.Services.AddSingleton<PasswordHashingService>();
             builder.Services.AddSingleton<ICache, SystemCache>();
             builder.Services.AddSingleton<ITiToService, TiToService>();
+            builder.Services.AddTransient<DbService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
         }
 

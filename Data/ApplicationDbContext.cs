@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Reflection.Emit;
 
 namespace Identity.Data
 {
@@ -54,6 +55,14 @@ namespace Identity.Data
                 .HasOne(a => a.TitoAccount)
                 .WithMany(ac => ac.Events)
                 .HasForeignKey(a => a.TitoAccountId);
+
+            builder.Entity<Ticket>()
+                .Property(t => t.Price)
+                .HasColumnType("decimal(18, 2)");
+
+            builder.Entity<Ticket>()
+                .Property(t => t.TotalPaid)
+                .HasColumnType("decimal(18, 2)");
 
             base.OnModelCreating(builder);
         }

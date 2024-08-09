@@ -81,10 +81,11 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings()
         {
             var user = await _userManager.GetUserAsync(User);
+
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.Customer)
                     .ThenInclude(x => x.TitoAccounts)
-                    .ThenInclude(x => x.Events)
+                        .ThenInclude(x => x.Events)
                 .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             var settingsModel = new SettingsFormModel();
@@ -94,7 +95,7 @@ namespace CheckIN.Controllers
 
             var selectedTitoAccount = userCustomer.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
 
-            Event selectedEvent = null;
+            Event? selectedEvent = null;
 
             if (selectedTitoAccount != null)
             {
@@ -198,13 +199,6 @@ namespace CheckIN.Controllers
 
             this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings?.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedTitoAccount", adminSettingsModel.TitoSettings?.Authenticate.SelectedAccount!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
-
-            //var connectToTitoResponse = await _tiToService.Connect(adminSettingsModel.TitoSettings.Token);
-            //TODO handle if it is not connected
-            //var authenticate = JsonConvert.DeserializeObject<Authenticate>(connectToTitoResponse)!;
-
-            //adminSettingsModel.TitoSettings.Authenticate = authenticate;
-            //return RedirectToAction("Settings", new { id = customerSettings.CustomerId });
 
             return this.View(adminSettingsModel);
         }

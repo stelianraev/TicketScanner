@@ -1,4 +1,6 @@
-﻿namespace CheckIN.Data.Model
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CheckIN.Data.Model
 {
     public class Ticket
     {
@@ -22,6 +24,7 @@
 
         public string? PhoneNumber { get; set; }
 
+        [Column(TypeName = "decimal(18, 2)")]
         public decimal Price { get; set; }
 
         public string? State { get; set; }
@@ -34,6 +37,7 @@
 
         public DateTime UpdatedAt { get; set; }
 
+        [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalPaid { get; set; }
 
         public string? RegistrationSlug { get; set; }
