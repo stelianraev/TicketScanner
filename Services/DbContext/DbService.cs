@@ -21,32 +21,75 @@ namespace CheckIN.Services.DbContext
             var accountsAndEvents = await _context.TitoAccounts
                .Include(x => x.Events)
                     .ThenInclude(x => x.Tickets)
-                    .Include(x => x.Events)
-                        .ThenInclude(x => x.UserEvents)
-                            .ThenInclude(x => x.User)
+               .Include(x => x.Events)
+                     .ThenInclude(x => x.UserEvents)
+                         .ThenInclude(x => x.User)
                .Where(x => x.CustomerId == customerId)
                .ToListAsync();
 
             return accountsAndEvents;
         }
 
-        public async Task<UserCustomer?> GetUserCustomerForCurrentUserAsync(Guid? userId)
+        public async Task<UserCustomer?> GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(Guid? userId)
         {
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.User)
                 .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                            .ThenInclude(x => x.Tickets)                        
                 .FirstOrDefaultAsync(x => x.UserId == userId);
 
             return userCustomer;
         }
 
-        public async Task<TitoAccount?> GetSelectedUserAccountWithEventsAync(Guid customerId)
+        public async Task<UserCustomer?> GetUserEventsForCurrentCustomerAsync(Guid? userId)
+        {
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.User)
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                            .ThenInclude(x => x.UserEvents)
+                .FirstOrDefaultAsync(x => x.UserId == userId);
+
+            return userCustomer;
+        }
+
+        public async Task<UserCustomer?> GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(Guid? userId)
+        {
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.User)
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                            .ThenInclude(x => x.UserEvents)
+                                .ThenInclude(x => x.User)
+                .FirstOrDefaultAsync(x => x.UserId.Equals(userId));
+
+            return userCustomer;
+        }
+
+        public async Task<TitoAccount?> GetSelectedUserAccountWithEventsAsync(Guid? customerId)
         {
             var accountsAndEvents = await _context.TitoAccounts
                .Include(x => x.Events)
                 .ThenInclude(x => x.UserEvents)
                     .ThenInclude(x => x.User)
                    .FirstOrDefaultAsync(x => x.CustomerId == customerId && x.IsSelected);
+
+            return accountsAndEvents;
+        }
+
+        public async Task<TitoAccount?> GetSelectedAccountWithEventsAndTicketsAsync(Guid? customerId)
+        {
+            var accountsAndEvents = await _context.TitoAccounts
+               .Include(x => x.Events)
+                    .ThenInclude(x => x.Tickets)
+                    .Include(x => x.Events)
+                        .ThenInclude(x => x.UserEvents)
+                            .ThenInclude(x => x.User)
+               .FirstOrDefaultAsync(x => x.CustomerId == customerId && x.IsSelected);
 
             return accountsAndEvents;
         }

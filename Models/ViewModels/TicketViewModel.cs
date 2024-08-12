@@ -12,7 +12,7 @@
         public string TicketType { get; set; }
         public string Tags { get; set; }
 
-        public bool IsScanned { get; set; }
+        public bool IsCheckedIn { get; set; }
 
         public DateTime CreatedAt { get; set; }
 

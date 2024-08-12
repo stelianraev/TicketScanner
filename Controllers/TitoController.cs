@@ -7,13 +7,12 @@ using CheckIN.Models.TITo.Event;
 using CheckIN.Models.TITo.Ticket;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
+using CheckIN.Services.DbContext;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Diagnostics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CheckIN.Controllers
 {
@@ -27,16 +26,18 @@ namespace CheckIN.Controllers
         //private readonly string? _titoToken;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly DbService _dbService;
 
         private static TicketViewModel? transferTicketModel;
 
-        public TitoController(UserManager<User> userManager, IMapper mapper, ITiToService tiToService, ApplicationDbContext context, ILogger<CheckInController> logger)
+        public TitoController(UserManager<User> userManager, DbService dbService, IMapper mapper, ITiToService tiToService, ApplicationDbContext context, ILogger<CheckInController> logger)
         {
             _tiToService = tiToService;
             _logger = logger;
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
+            _dbService = dbService;
         }
 
         [HttpPost]
@@ -302,38 +303,53 @@ namespace CheckIN.Controllers
         [Route("Ticket")]
         public async Task<IActionResult> Ticket([FromBody] QRCodeDataModel data)
         {
-            var checkListId = this.Request.Cookies["CheckInListId"];
-            var token = this.Request.Cookies["TiToToken"];
-
-            if (string.IsNullOrEmpty(checkListId) || string.IsNullOrEmpty(token))
-            {
-                return BadRequest("Required cookies are missing.");
-            }
-
             try
             {
-                string? qrCodeData = data.QRCodeData;
+                //check in db
+                var user = await _userManager.GetUserAsync(User);
+                var customer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+                var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
+                var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
+                var ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
 
-                //var response = await _tiToService.GetTicketAndVCardAsync(token, checkListId, qrCodeData);
-                //string ticketContent = response.ticketContent;
-                //byte[] vCardContent = response.vCardContent;
-
-                var response = await _tiToService.GetTicketAsync(token, checkListId, qrCodeData);
-
-                var result = JsonConvert.DeserializeObject<TitoTicket>(response);
-                var getVCard = await _tiToService.GetVCardAsync(token, qrCodeData);
-
-                if (result == null)
+                if (!ticket.IsCheckedIn)
                 {
-                    return NotFound("Ticket data is null after deserialization.");
+                    ticket.IsCheckedIn = true;
                 }
 
+                //check in tito
+                //var checkListId = this.Request.Cookies["CheckInListId"];
+                //var token = this.Request.Cookies["TiToToken"];
+
+                //if (string.IsNullOrEmpty(checkListId) || string.IsNullOrEmpty(token))
+                //{
+                //    return BadRequest("Required cookies are missing.");
+                //}
+
+
+                //string? qrCodeData = data.QRCodeData;
+
+                //var response = await _tiToService.GetTicketAsync(token, checkListId, qrCodeData);
+
+                //var result = JsonConvert.DeserializeObject<TitoTicket>(response);
+                //var getVCard = await _tiToService.GetVCardAsync(token, qrCodeData);
+
+                //if (result == null)
+                //{
+                //    return NotFound("Ticket data is null after deserialization.");
+                //}
+
                 var ticketModel = new TicketViewModel();
+                ticketModel.FullName = ticket.FullName;
+                ticketModel.CompanyName = ticket.CompanyName;
+                ticketModel.JobPosition = ticket.JobTitle;
+                //ticketModel.VCard = ticket.;
+
                 //ticketModel.FirstName = result.FirstName;
                 //ticketModel.LastName = result.LastName;
                 //ticketModel.CompanyName = result.CompanyName;
                 //ticketModel.Tags = result.Tags;
-                ticketModel.VCard = Convert.ToBase64String(getVCard);
+                //ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
 

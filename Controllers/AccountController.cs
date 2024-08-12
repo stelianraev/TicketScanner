@@ -100,7 +100,7 @@ namespace CheckIN.Controllers
                             //    }
                             //}
 
-                            var userCustomer = await _dbService.GetUserCustomerForCurrentUserAsync(user.Id);
+                            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user.Id);
 
 
                             //var userCustomer = await _context.UserCustomer
@@ -153,7 +153,7 @@ namespace CheckIN.Controllers
         {
             //var customerId = await GetCurrentCustomerAsync();
             var user = await _userManager.GetUserAsync(User);
-            var userCustomer = await _dbService.GetUserCustomerForCurrentUserAsync(user?.Id);
+            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
             if (userCustomer?.CustomerId == Guid.Empty)
             {
@@ -174,19 +174,27 @@ namespace CheckIN.Controllers
         {
             //TODO Reduce db requests
             var user = await _userManager.GetUserAsync(User);
-            var userCustomer = await _dbService.GetUserCustomerForCurrentUserAsync(user?.Id);
+            var userCustomer = await _dbService.GetUserEventsForCurrentCustomerAsync(user?.Id);
 
             if (userCustomer?.CustomerId == Guid.Empty)
             {
                 return Unauthorized();
             }
 
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
-            
-            var allCustomerAccounts = await _dbService.GetAllCustomerAccountsAsync(userCustomer.CustomerId);
-            var selectedAccount = allCustomerAccounts.FirstOrDefault(x => x.IsSelected);
-            var selectedEvent = allCustomerAccounts.FirstOrDefault(x => x.IsSelected)?.Events.FirstOrDefault(x => x.IsSelected);
+            //var existingUser = await _context.Users
+            //    .FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
+
+            //var existingUser = userCustomer?.Customer?.UserCustomers?.FirstOrDefault(x => x.User.Email == users.NewUser.Email);
+            var existingUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == users.NewUser.Email);
+
+            //var allCustomerAccounts = await _dbService.GetAllCustomerAccountsAsync(userCustomer.CustomerId);
+            //var customerAccounts = userCustomer?.Customer?.TitoAccounts?.ToList();
+            var selectedAccount = userCustomer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
+            var selectedEvent = userCustomer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected)?.Events?.FirstOrDefault(x => x.IsSelected);
+            //var selectedEvent = selectedAccount?.Events.FirstOrDefault(x => x.IsSelected);
+
+            //var selectedAccount = allCustomerAccounts.FirstOrDefault(x => x.IsSelected);
+            //var selectedEvent = allCustomerAccounts.FirstOrDefault(x => x.IsSelected)?.Events.FirstOrDefault(x => x.IsSelected);
 
             //var selectedAccount = await _context.TitoAccounts
             //    .Include(x => x.Events)
@@ -216,7 +224,8 @@ namespace CheckIN.Controllers
 
             if (existingUser != null)
             {
-                var existingUserInEvent = selectedEvent?.UserEvents.FirstOrDefault(x => x.UserId == existingUser.Id);
+                //var existingUserInEvent = selectedEvent?.UserEvents.FirstOrDefault(x => x.UserId == existingUser.Id);
+                var existingUserInEvent = selectedEvent?.UserEvents?.FirstOrDefault(x => x.UserId == existingUser.Id);
 
                 if (existingUserInEvent != null)
                 {
@@ -224,9 +233,19 @@ namespace CheckIN.Controllers
                 }
                 else
                 {
+                    //_context.Entry(selectedEvent!).State = EntityState.Unchanged;
+                    //_context.Entry(newUser).State = EntityState.Unchanged;
                     newUser.UserName = existingUser.UserName;
 
-                    await _context.AddAsync(newUserEvent);
+                    if (_context.Entry(selectedEvent).State == EntityState.Detached)
+                    {
+                        _context.Attach(selectedEvent);
+                    }                    
+
+                    //await _context.AddAsync(newUserEvent);
+                    selectedEvent!.UserEvents.Add(newUserEvent);
+
+                    //selectedEvent!.UserEvents.Add(newUserEvent);
                     await _context.SaveChangesAsync();
 
                     return RedirectToAction("Users", "Admin");
@@ -240,7 +259,7 @@ namespace CheckIN.Controllers
 
             var newUserCustomer = new UserCustomer()
             {
-                Customer = userCustomer.Customer,
+                Customer = userCustomer!.Customer,
                 User = newUser,
                 Owner = userCustomer.Owner
             };
@@ -288,7 +307,6 @@ namespace CheckIN.Controllers
             }
 
             var user = _context.Users.FirstOrDefault(x => x.Email == customer.Email);
-            //var doesCustomerExist = _context.Customers.Any(x => x.Email == customer.Email && x.Name == customer.Name);
 
             if (user != null)
             {
@@ -306,7 +324,6 @@ namespace CheckIN.Controllers
                 Email = customer.Email,
                 Permision = Permission.Owner,
                 UserCustomers = new List<UserCustomer>()
-
             };
 
             var userCustomer = new UserCustomer()
@@ -319,6 +336,7 @@ namespace CheckIN.Controllers
             {
                 Name = customer.Name,
                 UserCustomers = new List<UserCustomer>() { userCustomer },
+                Email = customer.Email,
                 TitoToken = null
             };
 
@@ -356,15 +374,15 @@ namespace CheckIN.Controllers
         //    return userCustomer.CustomerId;
         //}
 
-        private async Task<UserCustomer> GetCurrentUserCustomerAsync()
-        {
-            var userId = _userManager.GetUserId(User);
-            var userCustomer = await _context.UserCustomer
-                .Include(x => x.Customer)
-                .FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
+        //private async Task<UserCustomer> GetCurrentUserCustomerAsync()
+        //{
+        //    var userId = _userManager.GetUserId(User);
+        //    var userCustomer = await _context.UserCustomer
+        //        .Include(x => x.Customer)
+        //        .FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
 
-            return userCustomer;
-        }
+        //    return userCustomer;
+        //}
 
         [HttpGet]
         [Authorize(Roles = "Admin, Owner")]

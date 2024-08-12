@@ -13,7 +13,6 @@
     <section class="adminPage">
         <aside class="adminBar">
             <a href="/Admin/AdminSettings">Settings</a>
-            <a href="/Admin/Events">Events</a>
             <a href="/Admin/Tickets">Tickets</a>
             <a href="/Admin/Users">Users</a>
             <a href="/Admin/Scanner">Scanner</a>
@@ -31,26 +30,31 @@
                         @if (Model.Any())
                         {
                             <tr>
+                                <th>Name</th>
                                 <th>Email</th>
-                                <th>Permission</th>
+                                <th>Company Name</th>
+                                <th>Job Position</th>
+                                <th>Slug</th>
+                                <th>Phone Number</th>
+                                <th>Is Scanned</th>
                             </tr>
 
                             foreach (TicketViewModel ticket in Model)
-                            {
+                            {                                
                                 <tr>
-                                    <td>@ticket.Email</td>
                                     <td>@ticket.FullName</td>
+                                    <td>@ticket.Email</td>
                                     <td>@ticket.CompanyName</td>
+                                    <td>@ticket.JobPosition</td>
+                                    <td>@ticket.Slug</td>
                                     <td>@ticket.PhoneNumber</td>
-                                    <td>
-                                        <a asp-action="" asp-controller="" asp-route-id="@ticket.Id" class="btn btn-primary">Edit</a>
-                                    </td>
+                                    <td>@ticket.IsCheckedIn</td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <p>No Users</p>
+                            <p>No Tickets</p>
                         }
                     }
                 </table>

@@ -44,12 +44,12 @@
     </section>
     <section class="buttonsSection">
 
-        @if (user.Permision == Permission.Checker || user.Permision == Permission.Administrator)
+        @if (user.Permision == Permission.Checker || user.Permision == Permission.Administrator || user.Permision == Permission.Owner)
         {
             <button id="checkInButton" class="checkInButton">Check-In</button>
             <button id="registrationsButton" class="registrationsButton">Registrations</button>
         }
-        @if(user.Permision == Permission.Scanner || user.Permision == Permission.Administrator)
+        @if (user.Permision == Permission.Scanner || user.Permision == Permission.Administrator || user.Permision == Permission.Owner)
         {
             <button id="Scanning" class="scanning">Scanning</button>
         }
