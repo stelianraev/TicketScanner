@@ -46,6 +46,9 @@ namespace CheckIN.Data.Model
 
         public Guid EventId { get; set; }
 
+        //releaseTitle
+        public string TicketType {  get; set; }
+
         public Event Event { get; set; }
 
         public virtual ICollection<Attendee>? Attendees { get; set; }

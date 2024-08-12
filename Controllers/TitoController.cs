@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using Azure;
 using CheckIN.Data.Model;
-using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.TITo.Event;
 using CheckIN.Models.TITo.Ticket;
@@ -13,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Net.Sockets;
 
 namespace CheckIN.Controllers
 {
@@ -51,7 +50,7 @@ namespace CheckIN.Controllers
                 var userCustomer = await _context.UserCustomer
                     .Include(x => x.Customer)
                     .Include(x => x.Customer.TitoAccounts)
-                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
+                    .FirstOrDefaultAsync(x => x.UserId == user!.Id);
 
                 if (!titoSettings.IsRevoked)
                 {
@@ -299,24 +298,27 @@ namespace CheckIN.Controllers
             return View(transferTicketModel);
         }
 
+        //TODO Not for here. This endpoint response on scanned ticket
         [HttpPost]
         [Route("Ticket")]
         public async Task<IActionResult> Ticket([FromBody] QRCodeDataModel data)
         {
+            var ticket = new Ticket();
             try
             {
-                //check in db
                 var user = await _userManager.GetUserAsync(User);
-                var customer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+                var customer = await _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(user?.Id);
                 var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
                 var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
-                var ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
+                ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
 
+                //TODO - posible problems when this is setted on True but something failed
                 if (!ticket.IsCheckedIn)
                 {
                     ticket.IsCheckedIn = true;
                 }
 
+                #region Check ticket in tito directry
                 //check in tito
                 //var checkListId = this.Request.Cookies["CheckInListId"];
                 //var token = this.Request.Cookies["TiToToken"];
@@ -325,7 +327,6 @@ namespace CheckIN.Controllers
                 //{
                 //    return BadRequest("Required cookies are missing.");
                 //}
-
 
                 //string? qrCodeData = data.QRCodeData;
 
@@ -338,6 +339,7 @@ namespace CheckIN.Controllers
                 //{
                 //    return NotFound("Ticket data is null after deserialization.");
                 //}
+                #endregion
 
                 var ticketModel = new TicketViewModel();
                 ticketModel.FullName = ticket.FullName;
@@ -359,6 +361,7 @@ namespace CheckIN.Controllers
             catch (Exception ex)
             {
                 // Log the exception
+                ticket.IsCheckedIn = false;
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

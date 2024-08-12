@@ -111,6 +111,7 @@ namespace CheckIN
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.DbMigration<ApplicationDbContext>();
 
             //custom middleware
             //app.UseCustomerMiddleware();

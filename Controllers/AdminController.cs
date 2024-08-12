@@ -144,9 +144,9 @@ namespace CheckIN.Controllers
             var user = await _userManager.GetUserAsync(User);
             var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
-            if (userCustomer.Customer.TitoToken == null)
+            if (userCustomer?.Customer.TitoToken == null)
             {
-                userCustomer.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;
+                userCustomer!.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;
             }
 
             //var selectedtitoAccount = accountsAndEvents.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
@@ -159,7 +159,7 @@ namespace CheckIN.Controllers
             }
 
             //foreach (var acc in accountsAndEvents.Where(x => x.Id != selectedtitoAccount.Id))
-            foreach (var acc in userCustomer.Customer?.TitoAccounts.Where(x => x.Id != selectedtitoAccount?.Id))
+            foreach (var acc in userCustomer!.Customer?.TitoAccounts.Where(x => x.Id != selectedtitoAccount?.Id))
             {
                 acc.IsSelected = false;
             }
@@ -174,7 +174,7 @@ namespace CheckIN.Controllers
                 acc.IsSelected = false;
             }
 
-            var tickets = await _tiToService.GetAllTicketsAsync(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+            var tickets = await _tiToService.GetAllTicketsAsync(userCustomer!.Customer!.TitoToken!, selectedtitoAccount.Name, selectedEvent!.Slug!);
 
             var parsedTickets = JsonConvert.DeserializeObject<TitoTicketsResponse>(tickets);
 
