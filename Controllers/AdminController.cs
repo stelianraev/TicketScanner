@@ -143,10 +143,11 @@ namespace CheckIN.Controllers
 
             var user = await _userManager.GetUserAsync(User);
             var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+            var titoToken = userCustomer?.Customer.TitoToken;
 
-            if (userCustomer?.Customer.TitoToken == null)
+            if (titoToken == null)
             {
-                userCustomer!.Customer.TitoToken = adminSettingsModel.TitoSettings?.Token;
+                titoToken = adminSettingsModel.TitoSettings?.Token;
             }
 
             //var selectedtitoAccount = accountsAndEvents.FirstOrDefault(x => x.Name == adminSettingsModel.TitoSettings.Authenticate.SelectedAccount);
@@ -156,6 +157,7 @@ namespace CheckIN.Controllers
             if (selectedtitoAccount != null)
             {
                 selectedtitoAccount.IsSelected = true;
+                _context.Entry(selectedtitoAccount).State = EntityState.Modified;
             }
 
             //foreach (var acc in accountsAndEvents.Where(x => x.Id != selectedtitoAccount.Id))
@@ -174,7 +176,7 @@ namespace CheckIN.Controllers
                 acc.IsSelected = false;
             }
 
-            var tickets = await _tiToService.GetAllTicketsAsync(userCustomer!.Customer!.TitoToken!, selectedtitoAccount.Name, selectedEvent!.Slug!);
+            var tickets = await _tiToService.GetAllTicketsAsync(titoToken, selectedtitoAccount.Name, selectedEvent!.Slug!);
 
             var parsedTickets = JsonConvert.DeserializeObject<TitoTicketsResponse>(tickets);
 
@@ -186,19 +188,21 @@ namespace CheckIN.Controllers
 
                     if (isTicketExist == null)
                     {
+                        var ticketQR = await _tiToService.GetVCardAsync(titoToken, titoTicket!.Slug!);
                         var newTicket = new Ticket();
                         var ticket = _mapper.Map(titoTicket, newTicket);
+                        ticket.QrCodeImage = ticketQR;
                         selectedEvent.Tickets.Add(ticket);
                     }
                 }
             }
 
-            var webhooks = await _tiToService.GetWebhookEndpoint(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug, null);
+            var webhooks = await _tiToService.GetWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug, null);
             var parsedWebhooks = JsonConvert.DeserializeObject<WebhookResponse>(webhooks);
 
             if(parsedWebhooks?.WebhookEndpints == null || !parsedWebhooks.WebhookEndpints.Any())
             {
-                var newWebhook = await _tiToService.CreateWebhookEndpoint(userCustomer.Customer.TitoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+                var newWebhook = await _tiToService.CreateWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug);
             }
 
             await _context.SaveChangesAsync();
@@ -206,7 +210,7 @@ namespace CheckIN.Controllers
             adminSettingsModel.TitoSettings.Authenticate.Accounts = userCustomer.Customer.TitoAccounts?.Select(x => x.Name).ToList();
             adminSettingsModel.TitoSettings.Authenticate.Events = selectedtitoAccount?.Events?.Select(x => x.Slug).ToList();
 
-            this.Response.Cookies.Append("TiToToken", adminSettingsModel.TitoSettings?.Token!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
+            this.Response.Cookies.Append("TiToToken", titoToken, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
             this.Response.Cookies.Append("SelectedTitoAccount", adminSettingsModel.TitoSettings?.Authenticate.SelectedAccount!, new CookieOptions() { MaxAge = new TimeSpan(365, 0, 0, 0) });
 
             return this.View(adminSettingsModel);

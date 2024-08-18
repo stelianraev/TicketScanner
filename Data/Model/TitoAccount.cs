@@ -18,6 +18,6 @@ namespace CheckIN.Data.Model
 
         public Customer Customer { get; set; }
 
-        public virtual ICollection<Event> Events { get; set; }
+        public virtual ICollection<Event> Events { get; set; } = new List<Event>();
     }
 }

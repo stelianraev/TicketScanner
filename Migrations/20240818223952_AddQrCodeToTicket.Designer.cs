@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240810171615_AddQRCodeToTIcket")]
-    partial class AddQRCodeToTIcket
+    [Migration("20240818223952_AddQrCodeToTicket")]
+    partial class AddQrCodeToTicket
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -226,7 +226,6 @@ namespace CheckIN.Migrations
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<byte[]>("QrCodeImage")
-                        .IsRequired()
                         .HasColumnType("varbinary(max)");
 
                     b.Property<int>("RegistrationId")
@@ -247,6 +246,10 @@ namespace CheckIN.Migrations
 
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
+
+                    b.Property<string>("TicketType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPaid")
                         .HasColumnType("decimal(18, 2)");

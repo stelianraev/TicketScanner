@@ -80,7 +80,6 @@ namespace CheckIN
             //{
             //    options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
             //});
-
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddHttpClient();

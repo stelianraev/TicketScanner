@@ -51,10 +51,9 @@ namespace CheckIN.Data.Model
 
         public Event Event { get; set; }
 
-        public virtual ICollection<Attendee>? Attendees { get; set; }
-
-        public byte[] QrCodeImage { get; set; }
+        public byte[]? QrCodeImage { get; set; }
 
         public bool IsCheckedIn { get; set; }
+        public virtual ICollection<Attendee>? Attendees { get; set; } = new List<Attendee>();
     }
 }

@@ -14,8 +14,8 @@ namespace CheckIN.Data.Model
         [EmailAddress]
         public string Email { get; set; }
 
-        public virtual ICollection<UserCustomer>? UserCustomers { get; set; }
+        public virtual ICollection<UserCustomer>? UserCustomers { get; set; } = new List<UserCustomer>();
 
-        public virtual List<TitoAccount>? TitoAccounts { get; set; }
+        public virtual List<TitoAccount>? TitoAccounts { get; set; } = new List<TitoAccount>();
     }
 }

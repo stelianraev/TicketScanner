@@ -223,7 +223,6 @@ namespace CheckIN.Migrations
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<byte[]>("QrCodeImage")
-                        .IsRequired()
                         .HasColumnType("varbinary(max)");
 
                     b.Property<int>("RegistrationId")

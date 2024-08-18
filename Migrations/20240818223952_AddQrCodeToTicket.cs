@@ -5,35 +5,32 @@
 namespace CheckIN.Migrations
 {
     /// <inheritdoc />
-    public partial class AddQRCodeToTIcket : Migration
+    public partial class AddQrCodeToTicket : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "IsScanned",
-                table: "Tickets",
-                newName: "IsCheckedIn");
-
-            migrationBuilder.AddColumn<byte[]>(
+            migrationBuilder.AlterColumn<byte[]>(
                 name: "QrCodeImage",
                 table: "Tickets",
                 type: "varbinary(max)",
-                nullable: false,
-                defaultValue: new byte[0]);
+                nullable: true,
+                oldClrType: typeof(byte[]),
+                oldType: "varbinary(max)");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            migrationBuilder.AlterColumn<byte[]>(
                 name: "QrCodeImage",
-                table: "Tickets");
-
-            migrationBuilder.RenameColumn(
-                name: "IsCheckedIn",
                 table: "Tickets",
-                newName: "IsScanned");
+                type: "varbinary(max)",
+                nullable: false,
+                defaultValue: new byte[0],
+                oldClrType: typeof(byte[]),
+                oldType: "varbinary(max)",
+                oldNullable: true);
         }
     }
 }

@@ -54,8 +54,8 @@ namespace CheckIN.Data.Model
 
         public TitoAccount TitoAccount { get; set; }
 
-        public virtual ICollection<UserEvent> UserEvents { get; set; }
+        public virtual ICollection<UserEvent> UserEvents { get; set; } = new List<UserEvent>();
 
-        public virtual ICollection<Ticket> Tickets { get; set; }
+        public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
     }
 }
