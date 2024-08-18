@@ -4,6 +4,7 @@ using CheckIN.Data.Model;
 using CheckIN.Services;
 using CheckIN.Services.Cache;
 using CheckIN.Services.Customer;
+using CheckIN.Services.DbContext;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -79,7 +80,6 @@ namespace CheckIN
             //{
             //    options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
             //});
-
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddHttpClient();
@@ -88,6 +88,7 @@ namespace CheckIN
             builder.Services.AddSingleton<PasswordHashingService>();
             builder.Services.AddSingleton<ICache, SystemCache>();
             builder.Services.AddSingleton<ITiToService, TiToService>();
+            builder.Services.AddTransient<DbService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
         }
 
@@ -109,6 +110,7 @@ namespace CheckIN
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.DbMigration<ApplicationDbContext>();
 
             //custom middleware
             //app.UseCustomerMiddleware();

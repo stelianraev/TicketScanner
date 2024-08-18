@@ -1,19 +1,17 @@
 ﻿using AutoMapper;
-using Azure;
 using CheckIN.Data.Model;
-using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.TITo.Event;
 using CheckIN.Models.TITo.Ticket;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
+using CheckIN.Services.DbContext;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Diagnostics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net.Sockets;
 
 namespace CheckIN.Controllers
 {
@@ -27,16 +25,18 @@ namespace CheckIN.Controllers
         //private readonly string? _titoToken;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly DbService _dbService;
 
         private static TicketViewModel? transferTicketModel;
 
-        public TitoController(UserManager<User> userManager, IMapper mapper, ITiToService tiToService, ApplicationDbContext context, ILogger<CheckInController> logger)
+        public TitoController(UserManager<User> userManager, DbService dbService, IMapper mapper, ITiToService tiToService, ApplicationDbContext context, ILogger<CheckInController> logger)
         {
             _tiToService = tiToService;
             _logger = logger;
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
+            _dbService = dbService;
         }
 
         [HttpPost]
@@ -50,7 +50,7 @@ namespace CheckIN.Controllers
                 var userCustomer = await _context.UserCustomer
                     .Include(x => x.Customer)
                     .Include(x => x.Customer.TitoAccounts)
-                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
+                    .FirstOrDefaultAsync(x => x.UserId == user!.Id);
 
                 if (!titoSettings.IsRevoked)
                 {
@@ -298,42 +298,60 @@ namespace CheckIN.Controllers
             return View(transferTicketModel);
         }
 
+        //TODO Not for here. This endpoint response on scanned ticket
         [HttpPost]
         [Route("Ticket")]
         public async Task<IActionResult> Ticket([FromBody] QRCodeDataModel data)
         {
-            var checkListId = this.Request.Cookies["CheckInListId"];
-            var token = this.Request.Cookies["TiToToken"];
-
-            if (string.IsNullOrEmpty(checkListId) || string.IsNullOrEmpty(token))
-            {
-                return BadRequest("Required cookies are missing.");
-            }
-
+            var ticket = new Ticket();
             try
             {
-                string? qrCodeData = data.QRCodeData;
+                var user = await _userManager.GetUserAsync(User);
+                var customer = await _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(user?.Id);
+                var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
+                var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
+                ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
 
-                //var response = await _tiToService.GetTicketAndVCardAsync(token, checkListId, qrCodeData);
-                //string ticketContent = response.ticketContent;
-                //byte[] vCardContent = response.vCardContent;
-
-                var response = await _tiToService.GetTicketAsync(token, checkListId, qrCodeData);
-
-                var result = JsonConvert.DeserializeObject<TitoTicket>(response);
-                var getVCard = await _tiToService.GetVCardAsync(token, qrCodeData);
-
-                if (result == null)
+                //TODO - posible problems when this is setted on True but something failed
+                if (!ticket.IsCheckedIn)
                 {
-                    return NotFound("Ticket data is null after deserialization.");
+                    ticket.IsCheckedIn = true;
                 }
 
+                #region Check ticket in tito directry
+                //check in tito
+                //var checkListId = this.Request.Cookies["CheckInListId"];
+                //var token = this.Request.Cookies["TiToToken"];
+
+                //if (string.IsNullOrEmpty(checkListId) || string.IsNullOrEmpty(token))
+                //{
+                //    return BadRequest("Required cookies are missing.");
+                //}
+
+                //string? qrCodeData = data.QRCodeData;
+
+                //var response = await _tiToService.GetTicketAsync(token, checkListId, qrCodeData);
+
+                //var result = JsonConvert.DeserializeObject<TitoTicket>(response);
+                //var getVCard = await _tiToService.GetVCardAsync(token, qrCodeData);
+
+                //if (result == null)
+                //{
+                //    return NotFound("Ticket data is null after deserialization.");
+                //}
+                #endregion
+
                 var ticketModel = new TicketViewModel();
+                ticketModel.FullName = ticket.FullName;
+                ticketModel.CompanyName = ticket.CompanyName;
+                ticketModel.JobPosition = ticket.JobTitle;
+                //ticketModel.VCard = ticket.;
+
                 //ticketModel.FirstName = result.FirstName;
                 //ticketModel.LastName = result.LastName;
                 //ticketModel.CompanyName = result.CompanyName;
                 //ticketModel.Tags = result.Tags;
-                ticketModel.VCard = Convert.ToBase64String(getVCard);
+                //ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
 
@@ -343,6 +361,7 @@ namespace CheckIN.Controllers
             catch (Exception ex)
             {
                 // Log the exception
+                ticket.IsCheckedIn = false;
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

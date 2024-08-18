@@ -11,8 +11,11 @@ namespace CheckIN.Data.Model
 
         public string? TitoToken { get; set; }
 
-        public virtual ICollection<UserCustomer>? UserCustomers { get; set; }
+        [EmailAddress]
+        public string Email { get; set; }
 
-        public virtual List<TitoAccount>? TitoAccounts { get; set; }
+        public virtual ICollection<UserCustomer>? UserCustomers { get; set; } = new List<UserCustomer>();
+
+        public virtual List<TitoAccount>? TitoAccounts { get; set; } = new List<TitoAccount>();
     }
 }

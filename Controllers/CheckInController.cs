@@ -11,11 +11,11 @@ namespace CheckIN.Controllers
     public class CheckInController : Controller
     {
         private readonly ILogger<CheckInController> _logger;
-        private readonly ITiToService _tiToService;
+        //private readonly ITiToService _tiToService;
 
-        public CheckInController(ILogger<CheckInController> logger, ITiToService tiToService)
+        public CheckInController(ILogger<CheckInController> logger /*ITiToService tiToService*/)
         {
-            _tiToService = tiToService;
+            //_tiToService = tiToService;
             _logger = logger;
         }
 
@@ -37,6 +37,13 @@ namespace CheckIN.Controllers
         public IActionResult Registrations()
         {
             // Add logic for handling registrations here
+            return View();
+        }
+
+        [HttpGet]
+        [Route("Scanning")]
+        public IActionResult Scanning()
+        {
             return View();
         }
     }
