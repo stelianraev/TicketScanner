@@ -6,8 +6,7 @@ namespace CheckIN.Models.ViewModels
     {
         public List<UserFormModel>? Users { get; set; }
         public UserFormModel NewUser { get; set; }
-
-        public string? SelectedEvent { get; set; }
+        public string? SelectedEvent { get; set; }        
     }
 
     public class UserFormModel
@@ -27,6 +26,8 @@ namespace CheckIN.Models.ViewModels
         //public string ConfirmPassword { get; set; }
 
         public Permission Permission { get; set; }
+
+        public List<string> TicketType { get; set; } = new List<string> { "a", "b", "c" };
 
         //public string CustomerId { get; set; }
     }

@@ -47,11 +47,13 @@ namespace CheckIN.Data.Model
         public Guid EventId { get; set; }
 
         //releaseTitle
-        public string TicketType {  get; set; }
+        //public string? TicketType {  get; set; }
+        public string TicketTypeId {  get; set; }
+        public TicketType TicketType { get; set; }
 
         public Event Event { get; set; }
 
-        public byte[]? QrCodeImage { get; set; }
+        public string? QrCodeImage { get; set; }
 
         public bool IsCheckedIn { get; set; }
         public virtual ICollection<Attendee>? Attendees { get; set; } = new List<Attendee>();

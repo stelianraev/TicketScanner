@@ -11,7 +11,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using QRCoder;
+using System.Drawing;
 using System.Net.Sockets;
+using ZXing;
+using ZXing.QrCode;
 
 namespace CheckIN.Controllers
 {
@@ -100,7 +104,7 @@ namespace CheckIN.Controllers
                         {
                             Name = acc,
                             CustomerId = userCustomer.Customer.Id,
-                            Events = new List<CheckIN.Data.Model.Event>()
+                            Events = new List<Event>()
                         };
 
                         userCustomer.Customer.TitoAccounts.Add(titoAcc);
@@ -365,6 +369,77 @@ namespace CheckIN.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        //TODO Not for here. This endpoint response on scanned ticket
+        [HttpPost]
+        [Route("TicketScan")]
+        public async Task<IActionResult> TicketScan([FromBody] QRCodeDataModel data)
+        {
+            var ticket = new Ticket();
+                var user = await _userManager.GetUserAsync(User);
+                var customer = await _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(user?.Id);
+                var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
+                var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
+                ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
+
+                var ticketModel = new TicketViewModel();
+                ticketModel.FullName = ticket.FullName;
+                ticketModel.CompanyName = ticket.CompanyName;
+                ticketModel.JobPosition = ticket.JobTitle;
+                ticketModel.VCard = ticket.QrCodeImage;
+
+            string qrCodeText = DecodeQRCodeFromBase64(ticket.QrCodeImage);
+
+            Console.WriteLine("Decoded text from QR code: " + qrCodeText);
+
+            // Decode QR code
+            return null;
+            
+        }
+
+        public string DecodeQRCodeFromBase64(string base64String)
+        {
+            // Step 1: Convert the Base64 string to a byte array
+            byte[] qrCodeBytes = Convert.FromBase64String(base64String);
+
+            // Step 2: Convert the byte array to an Image
+            Image qrCodeImage = ConvertToImage(qrCodeBytes);
+
+            // Step 3: Decode the QR code
+            return DecodeQRCode(qrCodeImage);
+        }
+
+        private string DecodeQRCode(Image qrCodeImage)
+        {
+            Bitmap bitmap = new Bitmap(qrCodeImage);
+            BarcodeReader reader = new BarcodeReader();
+            var result = reader.Decode(bitmap);
+            return result?.Text;
+        }
+
+        private Image ConvertToImage(byte[] byteArray)
+        {
+            using (MemoryStream ms = new MemoryStream(byteArray))
+            {
+                Image img = Image.FromStream(ms);
+                return img;
+            }
+        }
+
+        private string ExtractXTypeFromVCard(string vCardData)
+        {
+            // Basic vCard parsing to extract custom field
+            var lines = vCardData.Split('\n');
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("XTYPE:"))
+                {
+                    return line.Substring("XTYPE:".Length).Trim();
+                }
+            }
+            return "XType not found";
+        }
+
 
         [HttpPost]
         [Route("Tickets")]

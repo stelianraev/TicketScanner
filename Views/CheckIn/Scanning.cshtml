@@ -124,12 +124,12 @@
 
         async function sendDataToServer(data) {
             try {
-                const response = await fetch('/Tito/Ticket', {
+                const response = await fetch('/Tito/TicketScan', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ qrCodeData: data })
+                    body: JSON.stringify({ Object: data })
                 });
 
                 if (!response.ok) {

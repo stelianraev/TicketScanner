@@ -1,0 +1,84 @@
+﻿html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+body, .adminPage {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Prevents overflow */
+}
+
+/* Sidebar styling */
+.adminBar {
+    width: 200px;
+    background-color: #333;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+    .adminBar a {
+        color: white;
+        text-decoration: none;
+        margin: 10px 0;
+    }
+
+/* Admin section styling */
+.admin {
+    flex-grow: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* Allows the admin content to scroll if necessary */
+}
+
+/* Table container with scroll */
+.table-container {
+    max-height: 80vh; /* Adjust to fit your needs */
+    overflow-y: auto;
+}
+
+/* Ensure table takes up full width */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* Prevent table from overflowing horizontally */
+table {
+    table-layout: fixed;
+}
+
+/* Set specific column widths */
+th, td {
+    width: auto; /* Allows columns to automatically size based on content */
+}
+
+td {
+    max-width: 200px; /* Set a max width to avoid overly wide columns */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds "..." if text overflows */
+}
+
+/* Image styling for VCard */
+img {
+    max-width: 100%;
+    height: auto;
+}
