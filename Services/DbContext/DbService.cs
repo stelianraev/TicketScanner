@@ -20,7 +20,7 @@ namespace CheckIN.Services.DbContext
         {
             var accountsAndEvents = await _context.TitoAccounts
                .Include(x => x.Events)
-                    .ThenInclude(x => x.TicketTypes)
+                    .ThenInclude(x => x.Tickets)
                .Include(x => x.Events)
                      .ThenInclude(x => x.UserEvents)
                          .ThenInclude(x => x.User)
@@ -37,7 +37,6 @@ namespace CheckIN.Services.DbContext
                 .Include(x => x.Customer)
                     .ThenInclude(x => x.TitoAccounts)!
                         .ThenInclude(x => x.Events)
-                            .ThenInclude(x => x.TicketTypes)
                                 .ThenInclude(x => x.Tickets)
                 .FirstOrDefaultAsync(x => x.UserId == userId);
 
@@ -80,7 +79,6 @@ namespace CheckIN.Services.DbContext
                 .Include(x => x.Customer)
                     .ThenInclude(x => x.TitoAccounts)!
                         .ThenInclude(x => x.Events)
-                            .ThenInclude(x => x.TicketTypes)
                                 .ThenInclude(x => x.Tickets)
                 .FirstOrDefaultAsync(x => x.UserId.Equals(userId));
 
@@ -102,7 +100,6 @@ namespace CheckIN.Services.DbContext
         {
             var accountsAndEvents = await _context.TitoAccounts
                .Include(x => x.Events)
-                    .ThenInclude(x => x.TicketTypes)
                         .ThenInclude(x => x.Tickets)
                     .Include(x => x.Events)
                         .ThenInclude(x => x.UserEvents)

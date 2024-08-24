@@ -182,23 +182,31 @@ namespace CheckIN.Controllers
             {
                 foreach (var titoTicket in parsedTickets.Tickets)
                 {
-                    var existingTicketType = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.Type);
-                    
-                    if (existingTicketType != null)
-                    {
-                        var isTicketExist = existingTicketType?.Tickets?.FirstOrDefault(x => x.TicketId == titoTicket.Id);
+                    var existingTicket = selectedEvent.Tickets.FirstOrDefault(x => x.TicketId == titoTicket.Id);
 
-                        if (isTicketExist != null)
-                        {
-                            continue;
-                        }
+                    if (existingTicket != null)
+                    {
+                        //var isTicketExist = existingTicketType?.TicketType.Tickets?.FirstOrDefault(x => x.TicketId == titoTicket.Id);
+
+                        //if (isTicketExist != null)
+                        //{
+                        continue;
+                        //}
                     }
                     else
                     {
-                        var newTicketType = new TicketType()
-                        {
-                            Name = titoTicket!.Type
-                        };
+                        //var newTicketType = new TicketType()
+                        //{
+                        //    Name = titoTicket!.Type
+                        //};
+
+                        //_context.TicketTypes.Add(newTicketType);
+
+                        //var newEventType = new EventTicketTypes();
+                        //newEventType.EventId = selectedEvent.EventId;
+                        //newEventType.TicketType = newTicketType;
+
+                        //selectedEvent.TicketTypes.Add(newEventType);
                     }
 
                     Contact contact = new Contact()
@@ -231,16 +239,16 @@ namespace CheckIN.Controllers
                     var newTicket = new Ticket();
                     var ticket = _mapper.Map(titoTicket, newTicket);
                     ticket.QrCodeImage = base64QrCode;
-                    selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.Type);
+                    selectedEvent.Tickets.Add(ticket);
                 }
             }
 
-            var webhooks = await _tiToService.GetWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug, null);
+            var webhooks = await _tiToService.GetWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug!, null);
             var parsedWebhooks = JsonConvert.DeserializeObject<WebhookResponse>(webhooks);
 
             if (parsedWebhooks?.WebhookEndpints == null || !parsedWebhooks.WebhookEndpints.Any())
             {
-                var newWebhook = await _tiToService.CreateWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+                var newWebhook = await _tiToService.CreateWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug!);
             }
 
             await _context.SaveChangesAsync();
@@ -294,6 +302,8 @@ namespace CheckIN.Controllers
         {
             var userCustomer = await GetCurrentUserCustomerAsync();
 
+
+            //TODO add in db service
             var accountsAndEvents = await _context.TitoAccounts
                 .Include(x => x.Events)
                     .ThenInclude(x => x.Tickets)
@@ -303,7 +313,7 @@ namespace CheckIN.Controllers
 
             var ticketsViewList = new List<TicketViewModel>();
 
-            foreach (var ticket in selectedEvent.Tickets)
+            foreach (var ticket in selectedEvent!.Tickets)
             {
                 var newTicketViewModel = new TicketViewModel()
                 {

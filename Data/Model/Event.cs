@@ -56,8 +56,8 @@ namespace CheckIN.Data.Model
 
         public virtual ICollection<UserEvent> UserEvents { get; set; } = new List<UserEvent>();
 
-        //public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+        public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 
-        public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
+        //public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
     }
 }
