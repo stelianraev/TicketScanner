@@ -100,8 +100,11 @@ namespace CheckIN.Controllers
                             //    }
                             //}
 
-                            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user.Id);
-
+                            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user.Id);
+                            var userCustomer = await _context.UserCustomer
+                                .Include(x => x.User)
+                                .Include(x => x.Customer)
+                                .FirstOrDefaultAsync(x => x.UserId.Equals(user.Id));
 
                             //var userCustomer = await _context.UserCustomer
                             //    .Include(x => x.User)

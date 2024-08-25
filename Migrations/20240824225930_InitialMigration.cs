@@ -66,18 +66,6 @@ namespace CheckIN.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TicketType",
-                columns: table => new
-                {
-                    TicketTypeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TicketType", x => x.TicketTypeId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -304,7 +292,7 @@ namespace CheckIN.Migrations
                     RegistrationSlug = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ReleaseSlug = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TicketTypeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TicketType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     QrCodeImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsCheckedIn = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -317,11 +305,24 @@ namespace CheckIN.Migrations
                         principalTable: "Events",
                         principalColumn: "EventId",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TicketTypes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TicketTypes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tickets_TicketType_TicketTypeId",
-                        column: x => x.TicketTypeId,
-                        principalTable: "TicketType",
-                        principalColumn: "TicketTypeId",
+                        name: "FK_TicketTypes_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "EventId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -347,7 +348,7 @@ namespace CheckIN.Migrations
                         column: x => x.EventId,
                         principalTable: "Events",
                         principalColumn: "EventId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -438,9 +439,9 @@ namespace CheckIN.Migrations
                 column: "EventId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tickets_TicketTypeId",
-                table: "Tickets",
-                column: "TicketTypeId");
+                name: "IX_TicketTypes_EventId",
+                table: "TicketTypes",
+                column: "EventId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TitoAccounts_CustomerId",
@@ -495,6 +496,9 @@ namespace CheckIN.Migrations
                 name: "Attendees");
 
             migrationBuilder.DropTable(
+                name: "TicketTypes");
+
+            migrationBuilder.DropTable(
                 name: "UserCustomer");
 
             migrationBuilder.DropTable(
@@ -511,9 +515,6 @@ namespace CheckIN.Migrations
 
             migrationBuilder.DropTable(
                 name: "Events");
-
-            migrationBuilder.DropTable(
-                name: "TicketType");
 
             migrationBuilder.DropTable(
                 name: "TitoAccounts");

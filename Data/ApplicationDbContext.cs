@@ -25,6 +25,7 @@ namespace Identity.Data
         public DbSet<Attendee> Attendees { get; set; }
         public DbSet<TitoAccount> TitoAccounts { get; set; }
         public DbSet<UserCustomer> UserCustomer { get; set; }
+        public DbSet<TicketType> TicketTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

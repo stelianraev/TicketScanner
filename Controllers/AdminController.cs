@@ -88,13 +88,14 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings()
         {
             var user = await _userManager.GetUserAsync(User);
-            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
-            //var userCustomer = await _context.UserCustomer
-            //    .Include(x => x.Customer)
-            //        .ThenInclude(x => x.TitoAccounts)
-            //            .ThenInclude(x => x.Events)
-            //    .FirstOrDefaultAsync(x => x.UserId == user.Id!);
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.User)
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             var settingsModel = new SettingsFormModel();
             settingsModel.TitoSettings = new TitoSettings();
@@ -138,7 +139,14 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
             var user = await _userManager.GetUserAsync(User);
-            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                            .ThenInclude(x => x.Tickets)
+                                 .FirstOrDefaultAsync(x => x.UserId.Equals(user.Id));
 
             var titoToken = userCustomer?.Customer.TitoToken;
 
@@ -193,21 +201,22 @@ namespace CheckIN.Controllers
                         continue;
                         //}
                     }
-                    else
-                    {
-                        //var newTicketType = new TicketType()
-                        //{
-                        //    Name = titoTicket!.Type
-                        //};
+                    //}
+                    //else
+                    //{
+                    //    //var newTicketType = new TicketType()
+                    //    //{
+                    //    //    Name = titoTicket!.Type
+                    //    //};
 
-                        //_context.TicketTypes.Add(newTicketType);
+                    //    //_context.TicketTypes.Add(newTicketType);
 
-                        //var newEventType = new EventTicketTypes();
-                        //newEventType.EventId = selectedEvent.EventId;
-                        //newEventType.TicketType = newTicketType;
+                    //    //var newEventType = new EventTicketTypes();
+                    //    //newEventType.EventId = selectedEvent.EventId;
+                    //    //newEventType.TicketType = newTicketType;
 
-                        //selectedEvent.TicketTypes.Add(newEventType);
-                    }
+                    //    //selectedEvent.TicketTypes.Add(newEventType);
+                    //}
 
                     Contact contact = new Contact()
                     {
@@ -222,6 +231,17 @@ namespace CheckIN.Controllers
                         Title = titoTicket.JobTitle,
                         XType = titoTicket.Type
                     };
+
+                    var ticketTypeExist = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.Type);
+                    if (ticketTypeExist == null)
+                    {
+                        TicketType newTicketType = new TicketType
+                        {
+                            Name = titoTicket.Type!
+                        };
+
+                        selectedEvent.TicketTypes.Add(newTicketType);
+                    }
 
                     string vcardcontents = FileHelper.CreateVCard(contact);
                     byte[] qrCodeImage = null;
