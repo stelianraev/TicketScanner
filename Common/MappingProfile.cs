@@ -34,7 +34,8 @@ namespace CheckIN.Common
             CreateMap<TitoTicket, Ticket>()
                 .ForMember(x => x.TicketId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(x => x.DiscountCodeUsed, opt => opt.MapFrom(src => src.DiscountCodeUsed))
-                .ForMember(x => x.JobTitle, opt => opt.MapFrom(src => src.JobTitle));
+                .ForMember(x => x.JobTitle, opt => opt.MapFrom(src => src.JobTitle))
+                .ForMember(x => x.TicketType, opt => opt.MapFrom(src => src.Type));
                            
 
             CreateMap<Ticket, TicketViewModel>()
@@ -43,9 +44,7 @@ namespace CheckIN.Common
                 .ForMember(x => x.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(x => x.Email, opt => opt.MapFrom(src => src.Email))
                 .ForMember(x => x.CompanyName, opt => opt.MapFrom(src => src.CompanyName))
-                //.ForMember(x => x.JobPosition, opt => opt.MapFrom(src => src.Posi))
-                //.ForMember(x => x.TicketType, opt => opt.MapFrom(src => src.))
-                //Vcard
+                .ForMember(x => x.TicketType, opt => opt.MapFrom(src => src.TicketType))
                 .ForMember(x => x.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
         }
     }

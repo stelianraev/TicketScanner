@@ -344,6 +344,7 @@ namespace CheckIN.Controllers
                     Slug = ticket.Slug,
                     CreatedAt = ticket.CreatedAt,
                     IsCheckedIn = ticket.IsCheckedIn,
+                    TicketType = ticket.TicketType,
                     PhoneNumber = ticket.PhoneNumber,
                     VCard = ticket.QrCodeImage
                 };

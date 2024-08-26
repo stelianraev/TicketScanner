@@ -36,6 +36,7 @@
                                 <th>Job Position</th>
                                 <th>Slug</th>
                                 <th>Phone Number</th>
+                                <th>Ticket Type</th>
                                 <th>Is Scanned</th>
                                 <td>VCard</td>
                             </tr>
@@ -49,6 +50,7 @@
                                     <td>@ticket.JobPosition</td>
                                     <td>@ticket.Slug</td>
                                     <td>@ticket.PhoneNumber</td>
+                                    <td>@ticket.TicketType</td>
                                     <td>@ticket.IsCheckedIn</td>
                                     <td>
                                         @if (!String.IsNullOrEmpty(ticket.VCard))

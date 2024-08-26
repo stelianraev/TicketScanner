@@ -27,7 +27,7 @@ namespace CheckIN.Models.ViewModels
 
         public Permission Permission { get; set; }
 
-        public List<string> TicketType { get; set; } = new List<string> { "a", "b", "c" };
+        public List<string> TicketType { get; set; } = new List<string> ();
 
         //public string CustomerId { get; set; }
     }
