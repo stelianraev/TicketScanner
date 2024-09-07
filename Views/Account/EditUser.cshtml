@@ -1,4 +1,5 @@
-﻿@model UserFormModel
+﻿@using CheckIN.Models.Enums
+@model UserFormModel
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,34 +10,68 @@
     <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
 </head>
 <body>
-        <section class="admin">
-            <h1>Edit User</h1>
+    <section class="admin">
+        <h1>Edit User</h1>
 
         <form method="post" enctype="multipart/form-data">
-                <section class="adminSettings">
-                    <div class="form-group">
-                        <label for="Email">Email:</label>
-                        <input asp-for="Email" class="form-control">
-                        <span asp-validation-for="Email" class="small text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="Password">New Password:</label>
-                        <input asp-for="Password" class="form-control">
-                        <span asp-validation-for="Password" class="small text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="NewUser_Permission">Permission:</label>
-                        <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
-                        <span asp-validation-for="Permission" class="small text-danger"></span>
-                    </div>
-                </section>
+            <section class="adminSettings">
+                <div class="form-group">
+                    <label for="Email">Email:</label>
+                    <input asp-for="Email" class="form-control">
+                    <span asp-validation-for="Email" class="small text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="Password">New Password:</label>
+                    <input asp-for="Password" class="form-control">
+                    <span asp-validation-for="Password" class="small text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="NewUser_Permission">Permission:</label>
+                    <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
+                    <span asp-validation-for="Permission" class="small text-danger"></span>
+                </div>
+                <div id="ticketsDiv" class="form-group">
+                    <label for="NewUser_TicketTypesList">Ticket Type:</label>
+                    @foreach (var ticketType in Model.TicketTypeList)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="ticketType_@ticketType.Value"
+                                   name="SelectedTicketTypesPermission" value="@ticketType.Value"
+                            @(Model.SelectedTicketTypesPermission != null && Model.SelectedTicketTypesPermission.Contains(ticketType.Value) ? "checked" : "") />
+                            <label class="form-check-label" for="ticketType_@ticketType.Value">
+                                @ticketType.Text
+                            </label>
+                        </div>
+                    }
+                    <span asp-validation-for="SelectedTicketTypesPermission" class="small text-danger"></span>
+                </div>
 
-                <button id="save" type="submit">Save</button>
-            </form>
+                <div class="table-container">
+                    <table>
+                        @{
+                            <tr>
+                                <th>Email</th>
+                                <th>Permission</th>
+                                <th>Tickets Permissions</th>
+                            </tr>
+
+                            <tr>
+                                <td>@Model.Email</td>
+                                <td>@Model.Permission</td>
+                                <td>@string.Join("\n", Model.TicketTypesPermission)</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+
+            </section>
+
+            <button id="save" type="submit">Save</button>
+        </form>
         <button type="submit" class="btn btn-secondary">Delete</button>
 
         <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Users", "Admin")'">Cancel</button>
         @* <button asp-action="Users" asp-controller="Admin">Cancel</button> *@
-        </section>
+    </section>
 </body>
 </html>

@@ -1,5 +1,6 @@
 ﻿@model SettingsFormModel
 @using CheckIN.Data.Model
+@using CheckIN.Models.Enums
 @using Microsoft.AspNetCore.Identity
 
 @inject UserManager<User> UserManager
@@ -18,7 +19,7 @@
 </head>
 <body>   
 
-    @if (user!.Permision == Permission.Administrator)
+    @if (user!.Permission == Permission.Administrator)
     {
      <aside class="adminBar">
          <a href="/Admin/AdminSettings">Settings</a>

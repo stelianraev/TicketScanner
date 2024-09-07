@@ -4,6 +4,7 @@ using Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240827110802_AddTicketTypeToUser")]
+    partial class AddTicketTypeToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -273,9 +276,14 @@ namespace CheckIN.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("TicketTypes");
                 });
@@ -340,7 +348,7 @@ namespace CheckIN.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Permission")
+                    b.Property<int>("Permision")
                         .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
@@ -417,30 +425,6 @@ namespace CheckIN.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserEvents");
-                });
-
-            modelBuilder.Entity("CheckIN.Data.Model.UserEventTicketPermission", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TicketTipeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TicketTypeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TicketTypeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserEventTicketPermission");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -619,6 +603,10 @@ namespace CheckIN.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CheckIN.Data.Model.User", null)
+                        .WithMany("Permissions")
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Event");
                 });
 
@@ -675,25 +663,6 @@ namespace CheckIN.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CheckIN.Data.Model.UserEventTicketPermission", b =>
-                {
-                    b.HasOne("CheckIN.Data.Model.TicketType", "TicketType")
-                        .WithMany()
-                        .HasForeignKey("TicketTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CheckIN.Data.Model.User", "User")
-                        .WithMany("UserEventTicketPermission")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TicketType");
 
                     b.Navigation("User");
                 });
@@ -777,9 +746,9 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>
                 {
-                    b.Navigation("UserCustomers");
+                    b.Navigation("Permissions");
 
-                    b.Navigation("UserEventTicketPermission");
+                    b.Navigation("UserCustomers");
 
                     b.Navigation("UserEvents");
                 });

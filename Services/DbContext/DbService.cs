@@ -47,10 +47,16 @@ namespace CheckIN.Services.DbContext
         {
             var userCustomer = await _context.UserCustomer
                 .Include(x => x.User)
+                    .ThenInclude(x => x.UserEventTicketPermission)
+                        .ThenInclude(x => x.TicketType)
                 .Include(x => x.Customer)
                     .ThenInclude(x => x.TitoAccounts)!
                         .ThenInclude(x => x.Events)
                             .ThenInclude(x => x.UserEvents)
+                .Include(x => x.User)
+                    .ThenInclude(x => x.UserEvents)!
+                        .ThenInclude(x => x.Event)
+                            .ThenInclude(x => x.TicketTypes)
                 .FirstOrDefaultAsync(x => x.UserId == userId);
 
             return userCustomer;
@@ -76,10 +82,15 @@ namespace CheckIN.Services.DbContext
                         .ThenInclude(x => x.Events)
                             .ThenInclude(x => x.UserEvents)
                                 .ThenInclude(x => x.User)
+                                    .ThenInclude(x => x.UserEventTicketPermission)
                 .Include(x => x.Customer)
                     .ThenInclude(x => x.TitoAccounts)!
                         .ThenInclude(x => x.Events)
                                 .ThenInclude(x => x.Tickets)
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                                .ThenInclude(x => x.TicketTypes)
                 .FirstOrDefaultAsync(x => x.UserId.Equals(userId));
 
             return userCustomer;

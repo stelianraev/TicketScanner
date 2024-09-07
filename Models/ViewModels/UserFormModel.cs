@@ -1,15 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CheckIN.Models.Enums;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace CheckIN.Models.ViewModels
 {
-    public class UsersFormModel
-    {
-        public List<UserFormModel>? Users { get; set; }
-        public UserFormModel NewUser { get; set; }
-        public string? SelectedEvent { get; set; }        
-    }
-
-    public class UserFormModel
+    public class UserFormModel : IValidatableObject
     {
         public Guid? Id { get; set; }
 
@@ -17,9 +12,8 @@ namespace CheckIN.Models.ViewModels
         [EmailAddress]
         public string Email { get; set; }
 
-        [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         //[Required]
         //[DataType(DataType.Password)]
@@ -27,16 +21,23 @@ namespace CheckIN.Models.ViewModels
 
         public Permission Permission { get; set; }
 
-        public List<string> TicketType { get; set; } = new List<string> ();
+        //EditUser to have all possible ticket types to select permission
+        public List<SelectListItem>? TicketTypeList { get; set; }
 
-        //public string CustomerId { get; set; }
-    }
+        //TicketType for specific User
+        public List<string> TicketTypesPermission { get; set; } = new List<string> ();
 
-    public enum Permission
-    {
-        Owner = 1,
-        Administrator = 2,
-        Checker = 3,
-        Scanner = 4
+
+        public List<string>? SelectedTicketTypesPermission { get; set; } = new List<string>();
+
+        public bool IsRegistration { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (IsRegistration && string.IsNullOrWhiteSpace(Password))
+            {
+                yield return new ValidationResult("The Password field is required.", new[] { "Password" });
+            }
+        }
     }
 }

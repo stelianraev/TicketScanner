@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using QRCoder;
-using System.Drawing;
 
 namespace CheckIN.Controllers
 {
@@ -292,13 +291,15 @@ namespace CheckIN.Controllers
             var selectedAccount = userCustomer?.Customer.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
             var selectedEvent = selectedAccount?.Events.FirstOrDefault(x => x.IsSelected);
 
-            usersFormModelList.SelectedEvent = selectedEvent?.Title;
-
             if (selectedEvent == null)
             {
                 ModelState.AddModelError("Event", "Event is not selected. Please check settings and select event");
                 return this.View(usersFormModelList);
             }
+
+            usersFormModelList.SelectedEvent = selectedEvent?.Title;
+
+            usersFormModelList.TicketTypeList = selectedEvent.TicketTypes.Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = x.Name, Text = x.Name }).ToList();
 
             usersFormModelList.Users = new List<UserFormModel>();
 
@@ -307,12 +308,14 @@ namespace CheckIN.Controllers
                 var tempUsersViewModel = new UserFormModel();
                 tempUsersViewModel.Email = eventUser.User.Email!;
                 tempUsersViewModel.Password = eventUser.User.PasswordHash!;
-                tempUsersViewModel.Permission = eventUser.User.Permision;
+                tempUsersViewModel.Permission = eventUser.User.Permission;
                 tempUsersViewModel.Id = eventUser.User.Id;
+                tempUsersViewModel.TicketTypesPermission = eventUser.User.UserEventTicketPermission.Select(x => x.TicketType.Name).ToList();
 
                 usersFormModelList.Users.Add(tempUsersViewModel);
             }
 
+            usersFormModelList.NewUser = new UserFormModel();
             return this.View(usersFormModelList);
         }
 
