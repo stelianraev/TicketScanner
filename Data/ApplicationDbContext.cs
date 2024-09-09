@@ -22,6 +22,7 @@ namespace Identity.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<UserEvent> UserEvents { get; set; }
+        public DbSet<UserEventTicketPermission> UserEventPermissions { get; set; }
         public DbSet<Attendee> Attendees { get; set; }
         public DbSet<TitoAccount> TitoAccounts { get; set; }
         public DbSet<UserCustomer> UserCustomer { get; set; }

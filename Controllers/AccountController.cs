@@ -128,14 +128,10 @@ namespace CheckIN.Controllers
                                 }                                
                             }                            
                         }
-                        else if (roles.Contains(Permission.Checker.ToString()))
+                        else if (roles.Contains(Permission.Checker.ToString()) || roles.Contains(Permission.Scanner.ToString()))
                         {
                             return RedirectToAction("Index", "CheckIn");
                         }
-                        else if (roles.Contains(Permission.Scanner.ToString()))
-                        {
-
-                        };
                     }
                     else
                     {
@@ -149,6 +145,15 @@ namespace CheckIN.Controllers
             }
 
             return this.View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+
+            return RedirectToAction("Entry", "Account");
         }
 
         //[HttpGet]
@@ -181,7 +186,10 @@ namespace CheckIN.Controllers
                 return RedirectToAction("Users", "Admin");
             }
 
+            // Get the current logged-in user
             var user = await _userManager.GetUserAsync(User);
+
+            // Get the customer details
             var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
             if (userCustomer?.CustomerId == Guid.Empty)
@@ -189,94 +197,96 @@ namespace CheckIN.Controllers
                 return Unauthorized();
             }
 
+            // Check if the user exists in the system based on email
             var existingUser = await _context.Users
-                .AsNoTracking()  // Ensures existingUser is not tracked by the context
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Email == userModel.NewUser.Email);
 
+            // Get the selected event and account
             var selectedAccount = userCustomer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
             var selectedEvent = selectedAccount?.Events?.FirstOrDefault(x => x.IsSelected);
 
-            // Detach and re-attach selectedEvent only if needed
             if (_context.Entry(selectedEvent).State == EntityState.Detached)
             {
                 _context.Attach(selectedEvent);
             }
 
+            // If the user exists, add them to the event and configure permissions
             if (existingUser != null)
             {
+                // Check if the user is already associated with the event
                 var existingUserInEvent = selectedEvent?.UserEvents?.FirstOrDefault(x => x.UserId == existingUser.Id);
 
                 if (existingUserInEvent != null)
                 {
                     ModelState.AddModelError("Users", "This email is already used with this customer");
-                    return View(userModel);
+                    return View(userModel.NewUser);
                 }
 
-                var newUserEvent = new UserEvent()
+                // Add existing user to the event and configure their ticket permissions
+                var newUserEvent = new UserEvent
                 {
-                    Event = selectedEvent,
-                    User = existingUser,
+                    EventId = selectedEvent.EventId,
+                    UserId = existingUser.Id
                 };
 
+                // Clear any existing ticket permissions and set new ones
+                existingUser.UserEventTicketPermission.Clear();
                 foreach (var permission in userModel.NewUser.SelectedTicketTypesPermission)
                 {
                     var ticketTypePerm = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == permission);
-
-                    var tempPermision = new UserEventTicketPermission
+                    var tempPermission = new UserEventTicketPermission
                     {
-                        User = existingUser,
-                        TicketType = ticketTypePerm
+                        TicketTypeId = ticketTypePerm.Id,
+                        UserId = existingUser.Id
                     };
 
-                    existingUser.UserEventTicketPermission.Add(tempPermision);
-                }
-
-                // Detach existingUser if already tracked before attaching it again
-                var trackedUser = _context.Entry(existingUser);
-                if (trackedUser.State == EntityState.Detached)
-                {
-                    _context.Attach(existingUser);
+                    existingUser.UserEventTicketPermission.Add(tempPermission);
                 }
 
                 selectedEvent!.UserEvents.Add(newUserEvent);
-
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction("Users", "Admin");
             }
 
-            var permissionCollection = new List<UserEventTicketPermission>();
-            foreach (var permission in userModel.NewUser.SelectedTicketTypesPermission)
-            {
-                var ticketTypePerm = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == permission);
-
-                var tempPermision = new UserEventTicketPermission
-                {
-                    User = existingUser,
-                    TicketType = ticketTypePerm
-                };
-
-                permissionCollection.Add(tempPermision);
-            }
-
+            // If the user does not exist, create a new user
             var newUser = new User
             {
                 UserName = userModel.NewUser.Email,
                 Email = userModel.NewUser.Email,
-                Permission = userModel.NewUser.Permission,
-                UserEventTicketPermission = permissionCollection
+                Permission = userModel.NewUser.Permission
             };
 
+            // Set up the user's ticket permissions for the event
+            var userPerm = new List<UserEventTicketPermission>();
+            foreach (var permission in userModel.NewUser.SelectedTicketTypesPermission)
+            {
+                var ticketTypePerm = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == permission);
+
+                var tempPermission = new UserEventTicketPermission
+                {
+                    TicketTypeId = ticketTypePerm.Id,
+                    UserId = newUser.Id
+                };
+
+                userPerm.Add(tempPermission);
+            }
+
+            newUser.UserEventTicketPermission = userPerm;
+
+            // Create the new user using UserManager
             var result = await _userManager.CreateAsync(newUser, userModel.NewUser.Password);
 
             if (result.Succeeded)
             {
+                // Add the new user to the event
                 var newUserEvent = new UserEvent
                 {
                     Event = selectedEvent,
                     UserId = newUser.Id
                 };
 
+                // Add the user to the customer
                 var newUserCustomer = new UserCustomer
                 {
                     Customer = userCustomer!.Customer,
@@ -286,9 +296,10 @@ namespace CheckIN.Controllers
 
                 selectedEvent!.UserEvents.Add(newUserEvent);
 
+                // Assign the role to the new user
                 if (!await _roleManager.RoleExistsAsync(userModel.NewUser.Permission.ToString()))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole<Guid>() { Name = userModel.NewUser.Permission.ToString() });
+                    await _roleManager.CreateAsync(new IdentityRole<Guid> { Name = userModel.NewUser.Permission.ToString() });
                 }
 
                 await _userManager.AddToRoleAsync(newUser, userModel.NewUser.Permission.ToString());
@@ -307,7 +318,6 @@ namespace CheckIN.Controllers
                 return View(userModel);
             }
         }
-
 
         [HttpGet]
         public IActionResult CustomerRegistration()
@@ -423,6 +433,32 @@ namespace CheckIN.Controllers
             return this.View(userViewModel);
 
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Owner")]
+        public async Task<IActionResult> DeleteUser(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Users", "Admin");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View("UserForm", user);
+        }
+
 
         [HttpPost]
         [Authorize(Roles = "Admin, Owner")]

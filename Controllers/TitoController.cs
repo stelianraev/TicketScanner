@@ -11,11 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using QRCoder;
 using System.Drawing;
-using System.Net.Sockets;
 using ZXing;
-using ZXing.QrCode;
 
 namespace CheckIN.Controllers
 {
@@ -482,16 +479,30 @@ namespace CheckIN.Controllers
                 var getEventsResponse = await _tiToService.GetEventsAsync(titoSettings!.Token, titoSettings!.Account);
 
                 var result = JsonConvert.DeserializeObject<TitoEventResponse>(getEventsResponse);
+
                 var titoAccount = await _context.TitoAccounts
                     .Include(x => x.Events)
                     .FirstOrDefaultAsync(x => x.Name == titoSettings.Account);
 
+                if (titoAccount == null)
+                {
+                    return NotFound("TitoAccount not found");
+                }
 
                 var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Unauthorized("User not authenticated");
+                }
+
                 var userCustomer = await _context.UserCustomer
                     .Include(x => x.Customer)
                     .FirstOrDefaultAsync(x => x.UserId == user.Id);
-                //var customer1 = await _context.User
+
+                if (userCustomer == null || userCustomer.Customer == null)
+                {
+                    return BadRequest("UserCustomer or Customer not found");
+                }
 
                 if (titoAccount.Events == null)
                 {
@@ -507,28 +518,31 @@ namespace CheckIN.Controllers
 
                         newEvent.UserEvents = new List<UserEvent>();
 
-                        var newUserEvent = new UserEvent()
+                        var newUserEvent = new UserEvent
                         {
-                            User = userCustomer.User,
+                            UserId = user.Id,
                             Event = newEvent
                         };
 
                         newEvent.UserEvents.Add(newUserEvent);
                         newEvent.Customer = userCustomer.Customer;
+
                         titoAccount.Events.Add(newEvent);
                     }
                 }
 
+                // Save changes to the database
                 await _context.SaveChangesAsync();
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // Logging exception
+                // Log exception (add your logging mechanism here)
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpPost]
         [Route("Webhook")]

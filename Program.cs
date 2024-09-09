@@ -87,7 +87,7 @@ namespace CheckIN
 
             builder.Services.AddSingleton<PasswordHashingService>();
             builder.Services.AddSingleton<ICache, SystemCache>();
-            builder.Services.AddSingleton<ITiToService, TiToService>();
+            builder.Services.AddTransient<ITiToService, TiToService>();
             builder.Services.AddTransient<DbService>();
             builder.Services.AddScoped<ICustomerProvider, CustomerProvider>();
         }

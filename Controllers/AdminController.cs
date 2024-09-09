@@ -325,8 +325,6 @@ namespace CheckIN.Controllers
         {
             var userCustomer = await GetCurrentUserCustomerAsync();
 
-
-            //TODO add in db service
             var accountsAndEvents = await _context.TitoAccounts
                 .Include(x => x.Events)
                     .ThenInclude(x => x.Tickets)

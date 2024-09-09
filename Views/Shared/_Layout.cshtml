@@ -12,6 +12,12 @@
             <div class="container">
             </div>
         </nav>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <form asp-action="Logout" asp-controller="Account" method="post" class="form-inline">
+                <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+        }
     </header>
     <div class="container">
         <main role="main" class="pb-3">

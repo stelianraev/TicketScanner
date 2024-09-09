@@ -1,7 +1,4 @@
 ﻿@model SettingsFormModel
-@using CheckIN.Data.Model
-@using CheckIN.Models.Enums
-@using Microsoft.AspNetCore.Identity
 
 @inject UserManager<User> UserManager
 
@@ -17,8 +14,7 @@
     <link rel="stylesheet" href="/css/settings.css" type="text/css">
     <title>Settings</title>
 </head>
-<body>   
-
+<body>
     @if (user!.Permission == Permission.Administrator)
     {
      <aside class="adminBar">
@@ -62,7 +58,9 @@
                     <video class="cameraPreview" id="cameraPreview" autoplay></video>
                 </section>
             </section>
+            <input type="hidden" id="referrerUrl" value="@ViewBag.ReferrerUrl" />
             <button id="save" type="submit">Save</button>
+            <button id="cancel" type="button" class="btn btn-secondary" onclick="window.location.href = document.getElementById('referrerUrl').value">Cancel</button>
         </form>
     </section>
 
