@@ -7,12 +7,15 @@ using CheckIN.Models.TITo.Webhook;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using CheckIN.Services.DbContext;
+using CheckIN.Services.VCard.Helpers;
+using CheckIN.Services.VCard.Models;
 using Identity.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using QRCoder;
 
 namespace CheckIN.Controllers
 {
@@ -84,13 +87,14 @@ namespace CheckIN.Controllers
         public async Task<IActionResult> AdminSettings()
         {
             var user = await _userManager.GetUserAsync(User);
-            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
-            //var userCustomer = await _context.UserCustomer
-            //    .Include(x => x.Customer)
-            //        .ThenInclude(x => x.TitoAccounts)
-            //            .ThenInclude(x => x.Events)
-            //    .FirstOrDefaultAsync(x => x.UserId == user.Id!);
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.User)
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                .FirstOrDefaultAsync(x => x.UserId == user.Id!);
 
             var settingsModel = new SettingsFormModel();
             settingsModel.TitoSettings = new TitoSettings();
@@ -133,16 +137,16 @@ namespace CheckIN.Controllers
         [HttpPost]
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
-            //var userCustomer = await GetCurrentUserCustomerAsync();
-
-            //var accountsAndEvents = await _context.TitoAccounts
-            //    .Include(x => x.Events)
-            //        .ThenInclude(x => x.Tickets)
-            //    .Where(x => x.CustomerId == userCustomer.CustomerId)
-            //    .ToListAsync();
-
             var user = await _userManager.GetUserAsync(User);
-            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+
+            var userCustomer = await _context.UserCustomer
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                            .ThenInclude(x => x.Tickets)
+                                 .FirstOrDefaultAsync(x => x.UserId.Equals(user.Id));
+
             var titoToken = userCustomer?.Customer.TitoToken;
 
             if (titoToken == null)
@@ -169,6 +173,7 @@ namespace CheckIN.Controllers
             if (selectedEvent != null)
             {
                 selectedEvent.IsSelected = true;
+                _context.Entry(selectedEvent).State = EntityState.Modified;
             }
 
             foreach (var acc in selectedtitoAccount.Events.Where(x => x.Slug != selectedEvent.Slug))
@@ -180,29 +185,89 @@ namespace CheckIN.Controllers
 
             var parsedTickets = JsonConvert.DeserializeObject<TitoTicketsResponse>(tickets);
 
-            if(parsedTickets != null && parsedTickets.Tickets.Any())
+            if (parsedTickets != null && parsedTickets.Tickets.Any())
             {
                 foreach (var titoTicket in parsedTickets.Tickets)
                 {
-                    var isTicketExist = selectedEvent.Tickets.FirstOrDefault(x => x.TicketId == titoTicket.Id);
+                    var existingTicket = selectedEvent.Tickets.FirstOrDefault(x => x.TicketId == titoTicket.Id);
 
-                    if (isTicketExist == null)
+                    if (existingTicket != null)
                     {
-                        var ticketQR = await _tiToService.GetVCardAsync(titoToken, titoTicket!.Slug!);
-                        var newTicket = new Ticket();
-                        var ticket = _mapper.Map(titoTicket, newTicket);
-                        ticket.QrCodeImage = ticketQR;
-                        selectedEvent.Tickets.Add(ticket);
+                        //var isTicketExist = existingTicketType?.TicketType.Tickets?.FirstOrDefault(x => x.TicketId == titoTicket.Id);
+
+                        //if (isTicketExist != null)
+                        //{
+                        continue;
+                        //}
                     }
+                    //}
+                    //else
+                    //{
+                    //    //var newTicketType = new TicketType()
+                    //    //{
+                    //    //    Name = titoTicket!.Type
+                    //    //};
+
+                    //    //_context.TicketTypes.Add(newTicketType);
+
+                    //    //var newEventType = new EventTicketTypes();
+                    //    //newEventType.EventId = selectedEvent.EventId;
+                    //    //newEventType.TicketType = newTicketType;
+
+                    //    //selectedEvent.TicketTypes.Add(newEventType);
+                    //}
+
+                    Contact contact = new Contact()
+                    {
+                        FirstName = titoTicket.FirstName,
+                        LastName = titoTicket.LastName,
+                        Email = titoTicket.Email,
+                        Phones = new List<Phone>()
+                            {
+                                {new Phone(){Number = titoTicket.PhoneNumber} }
+                            },
+                        Organization = titoTicket.CompanyName,
+                        Title = titoTicket.JobTitle,
+                        XType = titoTicket.Type
+                    };
+
+                    var ticketTypeExist = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.Type);
+                    if (ticketTypeExist == null)
+                    {
+                        TicketType newTicketType = new TicketType
+                        {
+                            Name = titoTicket.Type!
+                        };
+
+                        selectedEvent.TicketTypes.Add(newTicketType);
+                    }
+
+                    string vcardcontents = FileHelper.CreateVCard(contact);
+                    byte[] qrCodeImage = null;
+
+                    using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+                    {
+                        QRCodeData qrCodeData = qrGenerator.CreateQrCode(vcardcontents, QRCodeGenerator.ECCLevel.Q);
+                        using (PngByteQRCode qrCode = new PngByteQRCode(qrCodeData))
+                        {
+                            qrCodeImage = qrCode.GetGraphic(20);
+                        }
+                    }
+
+                    string base64QrCode = Convert.ToBase64String(qrCodeImage);
+                    var newTicket = new Ticket();
+                    var ticket = _mapper.Map(titoTicket, newTicket);
+                    ticket.QrCodeImage = base64QrCode;
+                    selectedEvent.Tickets.Add(ticket);
                 }
             }
 
-            var webhooks = await _tiToService.GetWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug, null);
+            var webhooks = await _tiToService.GetWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug!, null);
             var parsedWebhooks = JsonConvert.DeserializeObject<WebhookResponse>(webhooks);
 
-            if(parsedWebhooks?.WebhookEndpints == null || !parsedWebhooks.WebhookEndpints.Any())
+            if (parsedWebhooks?.WebhookEndpints == null || !parsedWebhooks.WebhookEndpints.Any())
             {
-                var newWebhook = await _tiToService.CreateWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug);
+                var newWebhook = await _tiToService.CreateWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug!);
             }
 
             await _context.SaveChangesAsync();
@@ -226,13 +291,15 @@ namespace CheckIN.Controllers
             var selectedAccount = userCustomer?.Customer.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
             var selectedEvent = selectedAccount?.Events.FirstOrDefault(x => x.IsSelected);
 
-            usersFormModelList.SelectedEvent = selectedEvent?.Title;
-
             if (selectedEvent == null)
             {
                 ModelState.AddModelError("Event", "Event is not selected. Please check settings and select event");
                 return this.View(usersFormModelList);
             }
+
+            usersFormModelList.SelectedEvent = selectedEvent?.Title;
+
+            usersFormModelList.TicketTypeList = selectedEvent.TicketTypes.Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = x.Name, Text = x.Name }).ToList();
 
             usersFormModelList.Users = new List<UserFormModel>();
 
@@ -241,12 +308,14 @@ namespace CheckIN.Controllers
                 var tempUsersViewModel = new UserFormModel();
                 tempUsersViewModel.Email = eventUser.User.Email!;
                 tempUsersViewModel.Password = eventUser.User.PasswordHash!;
-                tempUsersViewModel.Permission = eventUser.User.Permision;
+                tempUsersViewModel.Permission = eventUser.User.Permission;
                 tempUsersViewModel.Id = eventUser.User.Id;
+                tempUsersViewModel.TicketTypesPermission = eventUser.User.UserEventTicketPermission.Select(x => x.TicketType.Name).ToList();
 
                 usersFormModelList.Users.Add(tempUsersViewModel);
             }
 
+            usersFormModelList.NewUser = new UserFormModel();
             return this.View(usersFormModelList);
         }
 
@@ -265,7 +334,7 @@ namespace CheckIN.Controllers
 
             var ticketsViewList = new List<TicketViewModel>();
 
-            foreach(var ticket in selectedEvent.Tickets)
+            foreach (var ticket in selectedEvent!.Tickets)
             {
                 var newTicketViewModel = new TicketViewModel()
                 {
@@ -276,7 +345,9 @@ namespace CheckIN.Controllers
                     Slug = ticket.Slug,
                     CreatedAt = ticket.CreatedAt,
                     IsCheckedIn = ticket.IsCheckedIn,
-                    PhoneNumber = ticket.PhoneNumber
+                    TicketType = ticket.TicketType,
+                    PhoneNumber = ticket.PhoneNumber,
+                    VCard = ticket.QrCodeImage
                 };
 
                 ticketsViewList.Add(newTicketViewModel);

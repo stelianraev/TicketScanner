@@ -48,7 +48,7 @@ namespace CheckIN.Data.Model
         public bool IsSelected { get; set; }
 
         public Guid CustomerId { get; set; }
-        public Customer Customer { get; set; }        
+        public Customer Customer { get; set; }
 
         public Guid TitoAccountId {  get; set; }
 
@@ -57,5 +57,7 @@ namespace CheckIN.Data.Model
         public virtual ICollection<UserEvent> UserEvents { get; set; } = new List<UserEvent>();
 
         public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
+
+        public virtual ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
     }
 }

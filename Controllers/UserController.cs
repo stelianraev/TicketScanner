@@ -22,6 +22,8 @@ namespace CheckIN.Controllers
         [HttpGet]
         public IActionResult Settings(TitoSettings? titoSettings)
         {
+            var referrerUrl = Request.Headers["Referer"].ToString();
+            ViewBag.ReferrerUrl = referrerUrl;
             var cookies = this.Request.Cookies;
             var settingsModel = new SettingsFormModel();
             settingsModel.TitoSettings = titoSettings;

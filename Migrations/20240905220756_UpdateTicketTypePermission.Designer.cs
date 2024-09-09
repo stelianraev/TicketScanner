@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240809144013_AddEmailToCustomer")]
-    partial class AddEmailToCustomer
+    [Migration("20240905220756_UpdateTicketTypePermission")]
+    partial class UpdateTicketTypePermission
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -210,7 +210,7 @@ namespace CheckIN.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsScanned")
+                    b.Property<bool>("IsCheckedIn")
                         .HasColumnType("bit");
 
                     b.Property<string>("JobTitle")
@@ -224,6 +224,9 @@ namespace CheckIN.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("QrCodeImage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RegistrationId")
                         .HasColumnType("int");
@@ -244,6 +247,9 @@ namespace CheckIN.Migrations
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
+                    b.Property<string>("TicketType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("TotalPaid")
                         .HasColumnType("decimal(18, 2)");
 
@@ -255,6 +261,26 @@ namespace CheckIN.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("TicketTypes");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
@@ -317,7 +343,7 @@ namespace CheckIN.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Permision")
+                    b.Property<int>("Permission")
                         .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
@@ -394,6 +420,30 @@ namespace CheckIN.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserEvents");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.UserEventTicketPermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TicketTipeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TicketTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketTypeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserEventTicketPermission");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -564,6 +614,17 @@ namespace CheckIN.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Event", "Event")
+                        .WithMany("TicketTypes")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
                 {
                     b.HasOne("CheckIN.Data.Model.Customer", "Customer")
@@ -617,6 +678,25 @@ namespace CheckIN.Migrations
                         .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.UserEventTicketPermission", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.TicketType", "TicketType")
+                        .WithMany()
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CheckIN.Data.Model.User", "User")
+                        .WithMany("UserEventTicketPermission")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TicketType");
 
                     b.Navigation("User");
                 });
@@ -681,6 +761,8 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
+                    b.Navigation("TicketTypes");
+
                     b.Navigation("Tickets");
 
                     b.Navigation("UserEvents");
@@ -699,6 +781,8 @@ namespace CheckIN.Migrations
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>
                 {
                     b.Navigation("UserCustomers");
+
+                    b.Navigation("UserEventTicketPermission");
 
                     b.Navigation("UserEvents");
                 });

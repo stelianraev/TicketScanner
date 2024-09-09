@@ -16,6 +16,6 @@
 
         public DateTime CreatedAt { get; set; }
 
-        public string VCard { get; set; }
+        public string? VCard { get; set; }
     }
 }

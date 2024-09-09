@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CheckIN.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,24 +57,12 @@ namespace CheckIN.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TitoToken = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    TitoToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Customers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tickets",
-                columns: table => new
-                {
-                    TicketId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tickets", x => x.TicketId);
                 });
 
             migrationBuilder.CreateTable(
@@ -189,7 +177,8 @@ namespace CheckIN.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsSelected = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -208,22 +197,157 @@ namespace CheckIN.Migrations
                 {
                     CustomerUsersId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserCustomer", x => x.CustomerUsersId);
                     table.ForeignKey(
+                        name: "FK_UserCustomer_AspNetUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_UserCustomer_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_UserCustomer_Customers_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Events",
+                columns: table => new
+                {
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EndDate = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedAt = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SecurityToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TestMode = table.Column<bool>(type: "bit", nullable: false),
+                    DiscountCodesCount = table.Column<int>(type: "int", nullable: false),
+                    ShowDiscountCodeField = table.Column<bool>(type: "bit", nullable: false),
+                    AccountSlug = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Locales = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Private = table.Column<bool>(type: "bit", nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Live = table.Column<bool>(type: "bit", nullable: false),
+                    IsSelected = table.Column<bool>(type: "bit", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TitoAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Events", x => x.EventId);
+                    table.ForeignKey(
+                        name: "FK_Events_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Events_TitoAccounts_TitoAccountId",
+                        column: x => x.TitoAccountId,
+                        principalTable: "TitoAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tickets",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TicketId = table.Column<int>(type: "int", nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    JobTitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    State = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RegistrationId = table.Column<int>(type: "int", nullable: false),
+                    DiscountCodeUsed = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalPaid = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    RegistrationSlug = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReleaseSlug = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TicketType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    QrCodeImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsCheckedIn = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tickets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tickets_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "EventId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TicketTypes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TicketTypes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TicketTypes_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "EventId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserEvents",
+                columns: table => new
+                {
+                    UserEventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserEvents", x => x.UserEventId);
+                    table.ForeignKey(
+                        name: "FK_UserEvents_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserEvents_Events_EventId",
+                        column: x => x.EventId,
+                        principalTable: "Events",
+                        principalColumn: "EventId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -252,84 +376,7 @@ namespace CheckIN.Migrations
                         name: "FK_Attendees_Tickets_TicketId",
                         column: x => x.TicketId,
                         principalTable: "Tickets",
-                        principalColumn: "TicketId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Events",
-                columns: table => new
-                {
-                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EventName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TitoAccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Events", x => x.EventId);
-                    table.ForeignKey(
-                        name: "FK_Events_Customers_CustomerId",
-                        column: x => x.CustomerId,
-                        principalTable: "Customers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Events_TitoAccounts_TitoAccountId",
-                        column: x => x.TitoAccountId,
-                        principalTable: "TitoAccounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EventTicket",
-                columns: table => new
-                {
-                    EventsEventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TicketsTicketId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EventTicket", x => new { x.EventsEventId, x.TicketsTicketId });
-                    table.ForeignKey(
-                        name: "FK_EventTicket_Events_EventsEventId",
-                        column: x => x.EventsEventId,
-                        principalTable: "Events",
-                        principalColumn: "EventId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EventTicket_Tickets_TicketsTicketId",
-                        column: x => x.TicketsTicketId,
-                        principalTable: "Tickets",
-                        principalColumn: "TicketId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserEvents",
-                columns: table => new
-                {
-                    UserEventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserEvents", x => x.UserEventId);
-                    table.ForeignKey(
-                        name: "FK_UserEvents_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserEvents_Events_EventId",
-                        column: x => x.EventId,
-                        principalTable: "Events",
-                        principalColumn: "EventId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -387,9 +434,14 @@ namespace CheckIN.Migrations
                 column: "TitoAccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventTicket_TicketsTicketId",
-                table: "EventTicket",
-                column: "TicketsTicketId");
+                name: "IX_Tickets_EventId",
+                table: "Tickets",
+                column: "EventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TicketTypes_EventId",
+                table: "TicketTypes",
+                column: "EventId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TitoAccounts_CustomerId",
@@ -400,6 +452,11 @@ namespace CheckIN.Migrations
                 name: "IX_UserCustomer_CustomerId",
                 table: "UserCustomer",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserCustomer_OwnerId",
+                table: "UserCustomer",
+                column: "OwnerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserCustomer_UserId",
@@ -439,7 +496,7 @@ namespace CheckIN.Migrations
                 name: "Attendees");
 
             migrationBuilder.DropTable(
-                name: "EventTicket");
+                name: "TicketTypes");
 
             migrationBuilder.DropTable(
                 name: "UserCustomer");

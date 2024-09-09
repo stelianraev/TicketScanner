@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AdminPanel</title>
-    <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
+    <link rel="stylesheet" href="/css/admin/tickets.css" type="text/css">
 </head>
 <body>
     @* <text>Event: @Model.SelectedEvent</text> *@
@@ -15,8 +15,6 @@
             <a href="/Admin/AdminSettings">Settings</a>
             <a href="/Admin/Tickets">Tickets</a>
             <a href="/Admin/Users">Users</a>
-            <a href="/Admin/Scanner">Scanner</a>
-            <a href="/Admin/Registration">Registration</a>
             <a href="/Admin/CheckIn">CheckIn</a>
             <a href="/Admin/Analytics">Analytics</a>
         </aside>
@@ -36,7 +34,9 @@
                                 <th>Job Position</th>
                                 <th>Slug</th>
                                 <th>Phone Number</th>
+                                <th>Ticket Type</th>
                                 <th>Is Scanned</th>
+                                <td>VCard</td>
                             </tr>
 
                             foreach (TicketViewModel ticket in Model)
@@ -48,7 +48,14 @@
                                     <td>@ticket.JobPosition</td>
                                     <td>@ticket.Slug</td>
                                     <td>@ticket.PhoneNumber</td>
+                                    <td>@ticket.TicketType</td>
                                     <td>@ticket.IsCheckedIn</td>
+                                    <td>
+                                        @if (!String.IsNullOrEmpty(ticket.VCard))
+                                        {
+                                            <img src="data:image/png;base64,@ticket.VCard" alt="VCard" width="100" height="100" />
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }

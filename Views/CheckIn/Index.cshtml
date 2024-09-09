@@ -1,4 +1,5 @@
 ﻿@using CheckIN.Data.Model
+@using CheckIN.Models.Enums
 @using Microsoft.AspNetCore.Identity
 
 @inject UserManager<User> UserManager
@@ -44,30 +45,54 @@
     </section>
     <section class="buttonsSection">
 
-        @if (user.Permision == Permission.Checker || user.Permision == Permission.Administrator || user.Permision == Permission.Owner)
+        @if (user.Permission == Permission.Checker || user.Permission == Permission.Administrator || user.Permission == Permission.Owner)
         {
             <button id="checkInButton" class="checkInButton">Check-In</button>
             <button id="registrationsButton" class="registrationsButton">Registrations</button>
         }
-        @if (user.Permision == Permission.Scanner || user.Permision == Permission.Administrator || user.Permision == Permission.Owner)
+        @if (user.Permission == Permission.Scanner || user.Permission == Permission.Administrator || user.Permission == Permission.Owner)
         {
-            <button id="Scanning" class="scanning">Scanning</button>
+            <button id="scanning" class="scanning">Scanning</button>
+        }
+        @if (user.Permission == Permission.Owner || user.Permission == Permission.Administrator)
+        {
+            <button id="cancel" type="button" class="btn btn-secondary" onclick="window.location.href = '/Admin/AdminDashboard'">Admin Panel</button>
         }
 
     </section>
 
     <script>
-        document.getElementById("checkInButton").addEventListener("click", function () {
-            window.location.href = "@Url.Action("CheckIn", "CheckIn")";
-        });
+        // Check-In Button
+        var checkInButton = document.getElementById("checkInButton");
+        if (checkInButton) {
+            checkInButton.addEventListener("click", function () {
+                window.location.href = "@Url.Action("CheckIn", "CheckIn")";
+            });
+        }
 
-        document.getElementById("settings").addEventListener("click", function () {
-            window.location.href = "@Url.Action("Settings", "User")";
-        });
+        // Scanning Button
+        var scanningButton = document.getElementById("scanning");
+        if (scanningButton) {
+            scanningButton.addEventListener("click", function () {
+                window.location.href = "@Url.Action("Scanning", "CheckIn")";
+            });
+        }
 
-        document.getElementById("registrationsButton").addEventListener("click", function () {
-            window.open("https://www.webit.org/festival-europe/tickets.php", "_blank");
-        });
+        // Settings Button
+        var settingsButton = document.getElementById("settings");
+        if (settingsButton) {
+            settingsButton.addEventListener("click", function () {
+                window.location.href = "@Url.Action("Settings", "User")";
+            });
+        }
+
+        // Registrations Button
+        var registrationsButton = document.getElementById("registrationsButton");
+        if (registrationsButton) {
+            registrationsButton.addEventListener("click", function () {
+                window.open("https://www.webit.org/festival-europe/tickets.php", "_blank");
+            });
+        }
     </script>
 </body>
 </html>

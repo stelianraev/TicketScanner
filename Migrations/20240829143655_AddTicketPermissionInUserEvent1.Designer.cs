@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240812092617_addTicketTypetoTicket")]
-    partial class addTicketTypetoTicket
+    [Migration("20240829143655_AddTicketPermissionInUserEvent1")]
+    partial class AddTicketPermissionInUserEvent1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -225,9 +225,8 @@ namespace CheckIN.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<byte[]>("QrCodeImage")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                    b.Property<string>("QrCodeImage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RegistrationId")
                         .HasColumnType("int");
@@ -249,7 +248,6 @@ namespace CheckIN.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TicketType")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPaid")
@@ -263,6 +261,26 @@ namespace CheckIN.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("TicketTypes");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
@@ -391,6 +409,10 @@ namespace CheckIN.Migrations
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TicketPermissions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -572,6 +594,17 @@ namespace CheckIN.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Event", "Event")
+                        .WithMany("TicketTypes")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
                 {
                     b.HasOne("CheckIN.Data.Model.Customer", "Customer")
@@ -689,6 +722,8 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
+                    b.Navigation("TicketTypes");
+
                     b.Navigation("Tickets");
 
                     b.Navigation("UserEvents");

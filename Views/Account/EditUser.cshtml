@@ -1,4 +1,5 @@
-﻿@model UserFormModel
+﻿@using CheckIN.Models.Enums
+@model UserFormModel
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,34 +10,53 @@
     <link rel="stylesheet" href="/css/admin/adminDashboard.css" type="text/css">
 </head>
 <body>
-        <section class="admin">
-            <h1>Edit User</h1>
+    <section class="admin">
+        <h1>Edit User</h1>
 
-        <form method="post" enctype="multipart/form-data">
-                <section class="adminSettings">
-                    <div class="form-group">
-                        <label for="Email">Email:</label>
-                        <input asp-for="Email" class="form-control">
-                        <span asp-validation-for="Email" class="small text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="Password">New Password:</label>
-                        <input asp-for="Password" class="form-control">
-                        <span asp-validation-for="Password" class="small text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="NewUser_Permission">Permission:</label>
-                        <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
-                        <span asp-validation-for="Permission" class="small text-danger"></span>
-                    </div>
-                </section>
+        <form method="post" enctype="multipart/form-data" asp-action="UserRegistration">
+            <section class="adminSettings">
+                <div class="form-group">
+                    <label for="Email">Email:</label>
+                    <input asp-for="Email" class="form-control">
+                    <span asp-validation-for="Email" class="small text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="Password">New Password:</label>
+                    <input asp-for="Password" class="form-control">
+                    <span asp-validation-for="Password" class="small text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="NewUser_Permission">Permission:</label>
+                    <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
+                    <span asp-validation-for="Permission" class="small text-danger"></span>
+                </div>
 
-                <button id="save" type="submit">Save</button>
-            </form>
-        <button type="submit" class="btn btn-secondary">Delete</button>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Email</th>
+                            <th>Permission</th>
+                            <th>Tickets Permissions</th>
+                        </tr>
+
+                        <tr>
+                            <td>@Model.Email</td>
+                            <td>@Model.Permission</td>
+                            <td>@Html.Raw(string.Join("<br>", Model.TicketTypesPermission))</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <button id="save" type="submit" class="btn btn-primary">Save</button>
+            </section>
+        </form>
+
+        <form asp-action="DeleteUser" method="post">
+            <input type="hidden" name="email" value="@Model.Email" />
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
+        </form>
 
         <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Users", "Admin")'">Cancel</button>
-        @* <button asp-action="Users" asp-controller="Admin">Cancel</button> *@
-        </section>
+    </section>
 </body>
 </html>

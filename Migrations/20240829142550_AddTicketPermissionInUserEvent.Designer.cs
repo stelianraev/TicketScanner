@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240803011349_extendTickets")]
-    partial class extendTickets
+    [Migration("20240829142550_AddTicketPermissionInUserEvent")]
+    partial class AddTicketPermissionInUserEvent
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,6 +86,10 @@ namespace CheckIN.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -206,7 +210,7 @@ namespace CheckIN.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsScanned")
+                    b.Property<bool>("IsCheckedIn")
                         .HasColumnType("bit");
 
                     b.Property<string>("JobTitle")
@@ -219,7 +223,10 @@ namespace CheckIN.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("QrCodeImage")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RegistrationId")
                         .HasColumnType("int");
@@ -240,8 +247,11 @@ namespace CheckIN.Migrations
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
+                    b.Property<string>("TicketType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("TotalPaid")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -251,6 +261,31 @@ namespace CheckIN.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("UserEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserEventId");
+
+                    b.ToTable("TicketTypes");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
@@ -560,6 +595,21 @@ namespace CheckIN.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Event", "Event")
+                        .WithMany("TicketTypes")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CheckIN.Data.Model.UserEvent", null)
+                        .WithMany("TicketPermissions")
+                        .HasForeignKey("UserEventId");
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
                 {
                     b.HasOne("CheckIN.Data.Model.Customer", "Customer")
@@ -677,6 +727,8 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
+                    b.Navigation("TicketTypes");
+
                     b.Navigation("Tickets");
 
                     b.Navigation("UserEvents");
@@ -697,6 +749,11 @@ namespace CheckIN.Migrations
                     b.Navigation("UserCustomers");
 
                     b.Navigation("UserEvents");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.UserEvent", b =>
+                {
+                    b.Navigation("TicketPermissions");
                 });
 #pragma warning restore 612, 618
         }

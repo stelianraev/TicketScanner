@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CheckIN.Data.Model;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace CheckIN.Models.ViewModels
 {

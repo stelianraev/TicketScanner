@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240717081116_UpdateTicketTable")]
-    partial class UpdateTicketTable
+    [Migration("20240904155116_UserChangesAddTicketsPermission")]
+    partial class UserChangesAddTicketsPermission
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,6 +86,10 @@ namespace CheckIN.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -180,56 +184,86 @@ namespace CheckIN.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.EventTicketPermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TicketTipeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TicketTypePermisionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("TicketTypePermisionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EventTicketPermission");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.Ticket", b =>
                 {
-                    b.Property<string>("TicketId")
+                    b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CompanyName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DiscountCodeUsed")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCheckedIn")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JobTitle")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Price")
-                        .IsRequired()
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("QrCodeImage")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RegistrationId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("RegistrationId")
+                        .HasColumnType("int");
 
                     b.Property<string>("RegistrationSlug")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ReleaseSlug")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Slug")
@@ -237,18 +271,45 @@ namespace CheckIN.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("State")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TicketType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPaid")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("TicketId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
 
                     b.ToTable("Tickets");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("TicketTypes");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
@@ -311,7 +372,7 @@ namespace CheckIN.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Permision")
+                    b.Property<int>("Permission")
                         .HasColumnType("int");
 
                     b.Property<string>("PhoneNumber")
@@ -388,21 +449,6 @@ namespace CheckIN.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserEvents");
-                });
-
-            modelBuilder.Entity("EventTicket", b =>
-                {
-                    b.Property<Guid>("EventsEventId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("TicketsTicketId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("EventsEventId", "TicketsTicketId");
-
-                    b.HasIndex("TicketsTicketId");
-
-                    b.ToTable("EventTicket");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -562,6 +608,51 @@ namespace CheckIN.Migrations
                     b.Navigation("TitoAccount");
                 });
 
+            modelBuilder.Entity("CheckIN.Data.Model.EventTicketPermission", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CheckIN.Data.Model.TicketType", "TicketTypePermision")
+                        .WithMany()
+                        .HasForeignKey("TicketTypePermisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CheckIN.Data.Model.User", null)
+                        .WithMany("EventTicketPermissions")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("TicketTypePermision");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.Ticket", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Event", "Event")
+                        .WithMany("Tickets")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.HasOne("CheckIN.Data.Model.Event", "Event")
+                        .WithMany("TicketTypes")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>
                 {
                     b.HasOne("CheckIN.Data.Model.Customer", "Customer")
@@ -617,21 +708,6 @@ namespace CheckIN.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EventTicket", b =>
-                {
-                    b.HasOne("CheckIN.Data.Model.Event", null)
-                        .WithMany()
-                        .HasForeignKey("EventsEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CheckIN.Data.Model.Ticket", null)
-                        .WithMany()
-                        .HasForeignKey("TicketsTicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -694,6 +770,10 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.Event", b =>
                 {
+                    b.Navigation("TicketTypes");
+
+                    b.Navigation("Tickets");
+
                     b.Navigation("UserEvents");
                 });
 
@@ -709,6 +789,8 @@ namespace CheckIN.Migrations
 
             modelBuilder.Entity("CheckIN.Data.Model.User", b =>
                 {
+                    b.Navigation("EventTicketPermissions");
+
                     b.Navigation("UserCustomers");
 
                     b.Navigation("UserEvents");
