@@ -228,15 +228,15 @@ namespace CheckIN.Controllers
                             },
                         Organization = titoTicket.CompanyName,
                         Title = titoTicket.JobTitle,
-                        XType = titoTicket.Type
+                        XType = titoTicket.ReleaseTitle
                     };
 
-                    var ticketTypeExist = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.Type);
+                    var ticketTypeExist = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.ReleaseTitle);
                     if (ticketTypeExist == null)
                     {
                         TicketType newTicketType = new TicketType
                         {
-                            Name = titoTicket.Type!
+                            Name = titoTicket.ReleaseTitle!
                         };
 
                         selectedEvent.TicketTypes.Add(newTicketType);

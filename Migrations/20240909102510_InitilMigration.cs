@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CheckIN.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitilMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,7 @@ namespace CheckIN.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Permision = table.Column<int>(type: "int", nullable: false),
+                    Permission = table.Column<int>(type: "int", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -208,7 +208,7 @@ namespace CheckIN.Migrations
                         column: x => x.OwnerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserCustomer_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -220,7 +220,7 @@ namespace CheckIN.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -259,7 +259,7 @@ namespace CheckIN.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Events_TitoAccounts_TitoAccountId",
                         column: x => x.TitoAccountId,
@@ -379,6 +379,31 @@ namespace CheckIN.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserEventPermissions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TicketTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserEventPermissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserEventPermissions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserEventPermissions_TicketTypes_TicketTypeId",
+                        column: x => x.TicketTypeId,
+                        principalTable: "TicketTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -464,6 +489,16 @@ namespace CheckIN.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserEventPermissions_TicketTypeId",
+                table: "UserEventPermissions",
+                column: "TicketTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserEventPermissions_UserId",
+                table: "UserEventPermissions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserEvents_EventId",
                 table: "UserEvents",
                 column: "EventId");
@@ -496,10 +531,10 @@ namespace CheckIN.Migrations
                 name: "Attendees");
 
             migrationBuilder.DropTable(
-                name: "TicketTypes");
+                name: "UserCustomer");
 
             migrationBuilder.DropTable(
-                name: "UserCustomer");
+                name: "UserEventPermissions");
 
             migrationBuilder.DropTable(
                 name: "UserEvents");
@@ -509,6 +544,9 @@ namespace CheckIN.Migrations
 
             migrationBuilder.DropTable(
                 name: "Tickets");
+
+            migrationBuilder.DropTable(
+                name: "TicketTypes");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

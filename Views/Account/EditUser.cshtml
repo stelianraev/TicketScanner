@@ -13,7 +13,7 @@
     <section class="admin">
         <h1>Edit User</h1>
 
-        <form method="post" enctype="multipart/form-data" asp-action="UserRegistration">
+        <form method="post" enctype="multipart/form-data" asp-action="EditUser">
             <section class="adminSettings">
                 <div class="form-group">
                     <label for="Email">Email:</label>
@@ -29,6 +29,23 @@
                     <label for="NewUser_Permission">Permission:</label>
                     <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
                     <span asp-validation-for="Permission" class="small text-danger"></span>
+                </div>
+
+                <div id="ticketsDiv" class="form-group">
+                    <label for="NewUser_TicketType">Ticket Type:</label>
+                    @foreach (var ticketType in Model.TicketTypeList)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="ticketType_@ticketType.Value"
+                                   name="SelectedTicketTypesPermission"
+                                   value="@ticketType.Value"
+                            @(Model.SelectedTicketTypesPermission != null && Model.SelectedTicketTypesPermission.Contains(ticketType.Value) ? "checked" : "") />
+                            <label class="form-check-label" for="ticketType_@ticketType.Value">
+                                @ticketType.Text
+                            </label>
+                        </div>
+                    }
+                    <span asp-validation-for="SelectedTicketTypesPermission" class="small text-danger"></span>
                 </div>
 
                 <div class="table-container">

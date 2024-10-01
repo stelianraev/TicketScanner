@@ -370,28 +370,35 @@ namespace CheckIN.Controllers
         //TODO Not for here. This endpoint response on scanned ticket
         [HttpPost]
         [Route("TicketScan")]
-        public async Task<IActionResult> TicketScan([FromBody] QRCodeDataModel data)
+        public async Task<IActionResult> TicketScan([FromBody] Object data)
         {
             var ticket = new Ticket();
+            try
+            {
                 var user = await _userManager.GetUserAsync(User);
                 var customer = await _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(user?.Id);
                 var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
                 var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
-                ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
+                //ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
 
+                //Must Scan QR witch contains VCard and entranceQR information
+                
                 var ticketModel = new TicketViewModel();
                 ticketModel.FullName = ticket.FullName;
                 ticketModel.CompanyName = ticket.CompanyName;
                 ticketModel.JobPosition = ticket.JobTitle;
                 ticketModel.VCard = ticket.QrCodeImage;
 
-            string qrCodeText = DecodeQRCodeFromBase64(ticket.QrCodeImage);
+                string qrCodeText = DecodeQRCodeFromBase64(ticket.QrCodeImage);
 
-            Console.WriteLine("Decoded text from QR code: " + qrCodeText);
+                Console.WriteLine("Decoded text from QR code: " + qrCodeText);
 
-            // Decode QR code
-            return null;
-            
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return View("Error");
+            }            
         }
 
         public string DecodeQRCodeFromBase64(string base64String)

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CheckIN.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240907124048_FixTicketTypeName")]
-    partial class FixTicketTypeName
+    [Migration("20240909102510_InitilMigration")]
+    partial class InitilMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -440,7 +440,7 @@ namespace CheckIN.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserEventTicketPermission");
+                    b.ToTable("UserEventPermissions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>

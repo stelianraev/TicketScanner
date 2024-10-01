@@ -91,6 +91,7 @@ namespace CheckIN.Services
             request.Headers.Add("Authorization", "Token token=" + titoToken);
             request.Headers.Add("Accept", "application/json");
 
+            //TODO Cancelation Tocken
             var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)

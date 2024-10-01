@@ -247,6 +247,9 @@ namespace CheckIN.Migrations
                     b.Property<string>("TicketType")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("TicketTypeId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<decimal>("TotalPaid")
                         .HasColumnType("decimal(18, 2)");
 
@@ -256,6 +259,8 @@ namespace CheckIN.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("TicketTypeId");
 
                     b.ToTable("Tickets");
                 });
@@ -605,6 +610,10 @@ namespace CheckIN.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CheckIN.Data.Model.TicketType", null)
+                        .WithMany("Tickets")
+                        .HasForeignKey("TicketTypeId");
+
                     b.Navigation("Event");
                 });
 
@@ -765,6 +774,11 @@ namespace CheckIN.Migrations
             modelBuilder.Entity("CheckIN.Data.Model.Ticket", b =>
                 {
                     b.Navigation("Attendees");
+                });
+
+            modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>
+                {
+                    b.Navigation("Tickets");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.TitoAccount", b =>

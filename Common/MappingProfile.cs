@@ -35,7 +35,7 @@ namespace CheckIN.Common
                 .ForMember(x => x.TicketId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(x => x.DiscountCodeUsed, opt => opt.MapFrom(src => src.DiscountCodeUsed))
                 .ForMember(x => x.JobTitle, opt => opt.MapFrom(src => src.JobTitle))
-                .ForMember(x => x.TicketType, opt => opt.MapFrom(src => src.Type));
+                .ForMember(x => x.TicketType, opt => opt.MapFrom(src => src.ReleaseTitle));
                            
 
             CreateMap<Ticket, TicketViewModel>()
