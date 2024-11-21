@@ -190,9 +190,24 @@ namespace CheckIN.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             // Get the customer details
-            var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
+            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
-            if (userCustomer?.CustomerId == Guid.Empty)
+            var userQuery = from userCustomer in _context.UserCustomer
+                            join titoAccount in _context.TitoAccounts on userCustomer.CustomerId equals titoAccount.CustomerId
+                            join eventItem in _context.Events on titoAccount.Id equals eventItem.TitoAccountId
+                            join ticketType in _context.TicketTypes on eventItem.EventId equals ticketType.EventId
+                            where userCustomer.UserId == user.Id
+                            select new
+                            {
+                                UserCustomer = userCustomer,
+                                TitoAccount = titoAccount,
+                                Event = eventItem,
+                                TicketType = ticketType
+                            };
+
+            var userCustomerAccounts = await userQuery.FirstOrDefaultAsync(x => x.UserCustomer.UserId == user.Id);
+
+            if (userCustomerAccounts?.UserCustomer.CustomerId == Guid.Empty)
             {
                 return Unauthorized();
             }
@@ -203,7 +218,7 @@ namespace CheckIN.Controllers
                 .FirstOrDefaultAsync(x => x.Email == userModel.NewUser.Email);
 
             // Get the selected event and account
-            var selectedAccount = userCustomer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
+            var selectedAccount = userCustomerAccounts.TitoAccount;
             var selectedEvent = selectedAccount?.Events?.FirstOrDefault(x => x.IsSelected);
 
             if (_context.Entry(selectedEvent).State == EntityState.Detached)
@@ -289,9 +304,9 @@ namespace CheckIN.Controllers
                 // Add the user to the customer
                 var newUserCustomer = new UserCustomer
                 {
-                    Customer = userCustomer!.Customer,
+                    CustomerId = userCustomerAccounts!.UserCustomer.CustomerId,
                     UserId = newUser.Id,
-                    Owner = userCustomer.Owner
+                    OwnerId = userCustomerAccounts.UserCustomer.OwnerId
                 };
 
                 selectedEvent!.UserEvents.Add(newUserEvent);
@@ -392,24 +407,6 @@ namespace CheckIN.Controllers
 
             return View(customer);
         }
-
-        //private async Task<Guid> GetCurrentCustomerAsync()
-        //{
-        //    var userId = _userManager.GetUserId(User);
-        //    var userCustomer = await _context.UserCustomer.FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
-        //    var customer = userCustomer.Customer;
-        //    return userCustomer.CustomerId;
-        //}
-
-        //private async Task<UserCustomer> GetCurrentUserCustomerAsync()
-        //{
-        //    var userId = _userManager.GetUserId(User);
-        //    var userCustomer = await _context.UserCustomer
-        //        .Include(x => x.Customer)
-        //        .FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
-
-        //    return userCustomer;
-        //}
 
         [HttpGet]
         [Authorize(Roles = "Admin, Owner")]

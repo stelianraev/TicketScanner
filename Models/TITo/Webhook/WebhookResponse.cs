@@ -1,14 +1,15 @@
 ﻿using CheckIN.Models.TITo.Event;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace CheckIN.Models.TITo.Webhook
 {
     public class WebhookResponse
     {
-        [JsonPropertyName("webhook_endpoints")]
-        public List<Webhook> WebhookEndpints { get; set; }
+        [JsonProperty("webhook_endpoints")]
+        public List<WebhookEndpoint> WebhookEndpoints { get; set; }
 
-        [JsonPropertyName("meta")]
+
+        [JsonProperty("meta")]
         public MetaData Meta { get; set; }
     }
 }

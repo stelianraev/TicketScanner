@@ -244,10 +244,7 @@ namespace CheckIN.Migrations
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
-                    b.Property<string>("TicketType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("TicketTypeId")
+                    b.Property<Guid>("TicketTypeId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("TotalPaid")
@@ -610,11 +607,15 @@ namespace CheckIN.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CheckIN.Data.Model.TicketType", null)
+                    b.HasOne("CheckIN.Data.Model.TicketType", "TicketType")
                         .WithMany("Tickets")
-                        .HasForeignKey("TicketTypeId");
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("TicketType");
                 });
 
             modelBuilder.Entity("CheckIN.Data.Model.TicketType", b =>

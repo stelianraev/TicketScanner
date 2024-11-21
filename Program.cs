@@ -5,6 +5,7 @@ using CheckIN.Services;
 using CheckIN.Services.Cache;
 using CheckIN.Services.Customer;
 using CheckIN.Services.DbContext;
+using CheckIN.Services.VCard;
 using Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -85,6 +86,7 @@ namespace CheckIN
             builder.Services.AddHttpClient();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddSingleton<IVCardService, VCardService>();
             builder.Services.AddSingleton<PasswordHashingService>();
             builder.Services.AddSingleton<ICache, SystemCache>();
             builder.Services.AddTransient<ITiToService, TiToService>();

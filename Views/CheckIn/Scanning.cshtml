@@ -131,7 +131,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ Object: data })
+                    body: JSON.stringify({ qrCodeData: data })
                 });
 
                 if (!response.ok) {

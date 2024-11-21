@@ -7,7 +7,7 @@ using CheckIN.Models.TITo.Webhook;
 using CheckIN.Models.ViewModels;
 using CheckIN.Services;
 using CheckIN.Services.DbContext;
-using CheckIN.Services.VCard.Helpers;
+using CheckIN.Services.VCard;
 using CheckIN.Services.VCard.Models;
 using Identity.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using QRCoder;
+using System.Text.Json;
 
 namespace CheckIN.Controllers
 {
@@ -26,17 +27,19 @@ namespace CheckIN.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly DbService _dbService;
+        private readonly IVCardService _fileHelper;
         private readonly ITiToService _tiToService;
         private readonly IMapper _mapper;
 
-        public AdminController(ITiToService titoservice, DbService dbService, ApplicationDbContext context, UserManager<User> userManager, IMapper mapper, ILogger<AdminController> logger)
+        public AdminController(ITiToService titoService, DbService dbService, ApplicationDbContext context, UserManager<User> userManager, IVCardService fileHelper, IMapper mapper, ILogger<AdminController> logger)
         {
             _logger = logger;
             _context = context;
             _userManager = userManager;
-            _tiToService = titoservice;
+            _tiToService = titoService;
             _mapper = mapper;
             _dbService = dbService;
+            _fileHelper = fileHelper;
         }
 
         //[HttpGet]
@@ -133,19 +136,20 @@ namespace CheckIN.Controllers
             return this.View(settingsModel);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> AdminSettings(SettingsFormModel adminSettingsModel)
         {
             var user = await _userManager.GetUserAsync(User);
             //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
 
-            var userCustomer = await _context.UserCustomer
+            var userCustomer = _context.UserCustomer
                 .Include(x => x.Customer)
                     .ThenInclude(x => x.TitoAccounts)!
                         .ThenInclude(x => x.Events)
-                            .ThenInclude(x => x.Tickets)
-                                 .FirstOrDefaultAsync(x => x.UserId.Equals(user.Id));
+                           .ThenInclude(x => x.Tickets)
+                .Include(x => x.User)
+                    .ThenInclude(x => x.UserEvents)
+                                 .FirstOrDefault(x => x.UserId.Equals(user.Id));
 
             var titoToken = userCustomer?.Customer.TitoToken;
 
@@ -172,6 +176,19 @@ namespace CheckIN.Controllers
 
             if (selectedEvent != null)
             {
+                var newUserEvent = new UserEvent()
+                {
+                    UserId = user.Id,
+                    EventId = selectedEvent.EventId
+                };
+
+                var existingUserEvents = selectedEvent.UserEvents.FirstOrDefault(x => x.EventId == newUserEvent.EventId && x.UserId == newUserEvent.UserId);
+
+                if (existingUserEvents == null)
+                {
+                    selectedEvent.UserEvents.Add(newUserEvent);
+                }
+
                 selectedEvent.IsSelected = true;
                 _context.Entry(selectedEvent).State = EntityState.Modified;
             }
@@ -193,79 +210,48 @@ namespace CheckIN.Controllers
 
                     if (existingTicket != null)
                     {
-                        //var isTicketExist = existingTicketType?.TicketType.Tickets?.FirstOrDefault(x => x.TicketId == titoTicket.Id);
-
-                        //if (isTicketExist != null)
-                        //{
                         continue;
-                        //}
-                    }
-                    //}
-                    //else
-                    //{
-                    //    //var newTicketType = new TicketType()
-                    //    //{
-                    //    //    Name = titoTicket!.Type
-                    //    //};
+                    }        
 
-                    //    //_context.TicketTypes.Add(newTicketType);
+                    var existingTicketType = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.ReleaseTitle);
+                    if (existingTicketType == null)
+                    {
+                        existingTicketType = new TicketType
+                        {
+                            Name = titoTicket.ReleaseTitle!,
+                            Event = selectedEvent
+                        };
 
-                    //    //var newEventType = new EventTicketTypes();
-                    //    //newEventType.EventId = selectedEvent.EventId;
-                    //    //newEventType.TicketType = newTicketType;
-
-                    //    //selectedEvent.TicketTypes.Add(newEventType);
-                    //}
+                        selectedEvent.TicketTypes.Add(existingTicketType);
+                    }                    
+                                        
+                    var newTicket = new Ticket();
+                    var ticket = _mapper.Map(titoTicket, newTicket);
+                    existingTicketType.Tickets.Add(newTicket);
 
                     Contact contact = new Contact()
                     {
                         FirstName = titoTicket.FirstName,
                         LastName = titoTicket.LastName,
                         Email = titoTicket.Email,
-                        Phones = new List<Phone>()
-                            {
-                                {new Phone(){Number = titoTicket.PhoneNumber} }
-                            },
+                        Phone = titoTicket.PhoneNumber,
                         Organization = titoTicket.CompanyName,
                         Title = titoTicket.JobTitle,
-                        XType = titoTicket.ReleaseTitle
+                        TicketType = titoTicket.ReleaseTitle
                     };
 
-                    var ticketTypeExist = selectedEvent.TicketTypes.FirstOrDefault(x => x.Name == titoTicket.ReleaseTitle);
-                    if (ticketTypeExist == null)
-                    {
-                        TicketType newTicketType = new TicketType
-                        {
-                            Name = titoTicket.ReleaseTitle!
-                        };
-
-                        selectedEvent.TicketTypes.Add(newTicketType);
-                    }
-
-                    string vcardcontents = FileHelper.CreateVCard(contact);
-                    byte[] qrCodeImage = null;
-
-                    using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
-                    {
-                        QRCodeData qrCodeData = qrGenerator.CreateQrCode(vcardcontents, QRCodeGenerator.ECCLevel.Q);
-                        using (PngByteQRCode qrCode = new PngByteQRCode(qrCodeData))
-                        {
-                            qrCodeImage = qrCode.GetGraphic(20);
-                        }
-                    }
-
-                    string base64QrCode = Convert.ToBase64String(qrCodeImage);
-                    var newTicket = new Ticket();
-                    var ticket = _mapper.Map(titoTicket, newTicket);
+                    var vCard = _fileHelper.CreateVCard(contact);
+                    string base64QrCode = Convert.ToBase64String(vCard);
                     ticket.QrCodeImage = base64QrCode;
                     selectedEvent.Tickets.Add(ticket);
                 }
             }
 
             var webhooks = await _tiToService.GetWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug!, null);
+
             var parsedWebhooks = JsonConvert.DeserializeObject<WebhookResponse>(webhooks);
 
-            if (parsedWebhooks?.WebhookEndpints == null || !parsedWebhooks.WebhookEndpints.Any())
+            if (parsedWebhooks?.WebhookEndpoints == null || !parsedWebhooks.WebhookEndpoints.Any())
             {
                 var newWebhook = await _tiToService.CreateWebhookEndpoint(titoToken, selectedtitoAccount.Name, selectedEvent.Slug!);
             }
@@ -323,18 +309,22 @@ namespace CheckIN.Controllers
         [HttpGet]
         public async Task<IActionResult> Tickets()
         {
-            var userCustomer = await GetCurrentUserCustomerAsync();
+            var user = await _userManager.GetUserAsync(User);
 
-            var accountsAndEvents = await _context.TitoAccounts
-                .Include(x => x.Events)
-                    .ThenInclude(x => x.Tickets)
-                    .FirstOrDefaultAsync(x => x.IsSelected);
+            var userEvent = _context.UserCustomer
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.TitoAccounts)!
+                        .ThenInclude(x => x.Events)
+                            .ThenInclude(x => x.Tickets)
+                                .ThenInclude(x => x.TicketType)
+                .FirstOrDefault(x => x.UserId == user.Id);
 
-            var selectedEvent = accountsAndEvents?.Events.FirstOrDefault(x => x.IsSelected);
+            var selectedTitoAccount = userEvent.Customer.TitoAccounts.FirstOrDefault(x => x.IsSelected);
+            var selectedEvent = selectedTitoAccount.Events.FirstOrDefault(x => x.IsSelected);
 
             var ticketsViewList = new List<TicketViewModel>();
 
-            foreach (var ticket in selectedEvent!.Tickets)
+            foreach (var ticket in selectedEvent.Tickets)
             {
                 var newTicketViewModel = new TicketViewModel()
                 {
@@ -345,7 +335,7 @@ namespace CheckIN.Controllers
                     Slug = ticket.Slug,
                     CreatedAt = ticket.CreatedAt,
                     IsCheckedIn = ticket.IsCheckedIn,
-                    TicketType = ticket.TicketType,
+                    TicketType = ticket.TicketType.Name,
                     PhoneNumber = ticket.PhoneNumber,
                     VCard = ticket.QrCodeImage
                 };
@@ -373,16 +363,6 @@ namespace CheckIN.Controllers
         public IActionResult Scanner()
         {
             return RedirectToAction("Scanning", "CheckIn");
-        }
-
-        private async Task<UserCustomer> GetCurrentUserCustomerAsync()
-        {
-            var userId = _userManager.GetUserId(User);
-            var userCustomer = await _context.UserCustomer
-                .Include(x => x.Customer)
-                .FirstOrDefaultAsync(x => x.UserId.ToString() == userId);
-
-            return userCustomer;
         }
     }
 }

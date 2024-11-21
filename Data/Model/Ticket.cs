@@ -44,18 +44,18 @@ namespace CheckIN.Data.Model
 
         public string? ReleaseSlug { get; set; }
 
-        public Guid EventId { get; set; }
-
-        //releaseTitle
-        public string? TicketType {  get; set; }
-        //public string TicketTypeId {  get; set; }
-        //public TicketType TicketType { get; set; }
-
-        public Event Event { get; set; }
+        public Guid EventId { get; set; }       
 
         public string? QrCodeImage { get; set; }
 
         public bool IsCheckedIn { get; set; }
+
+        public Guid TicketTypeId { get; set; }
+
+        public virtual Event Event { get; set; }
+
+        public virtual TicketType TicketType { get; set; }
+
         public virtual ICollection<Attendee>? Attendees { get; set; } = new List<Attendee>();
     }
 }

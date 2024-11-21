@@ -58,6 +58,15 @@ namespace Identity.Data
                 .WithMany(ac => ac.Events)
                 .HasForeignKey(a => a.TitoAccountId);
 
+            //builder.Entity<Ticket>()
+            //    .HasOne(t => t.TicketType)
+            //    .WithMany(tt => tt.Tickets)
+            //    .HasForeignKey(t => t.TicketTypeId);
+            builder.Entity<Ticket>()
+                .HasOne(t => t.TicketType)
+                .WithMany(tt => tt.Tickets)
+                .HasForeignKey(t => t.TicketTypeId);
+
             builder.Entity<Ticket>()
                 .Property(t => t.Price)
                 .HasColumnType("decimal(18, 2)");

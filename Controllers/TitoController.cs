@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CheckIN.Data.Model;
+using CheckIN.Models;
 using CheckIN.Models.TITo;
 using CheckIN.Models.TITo.Event;
 using CheckIN.Models.TITo.Ticket;
@@ -171,12 +172,11 @@ namespace CheckIN.Controllers
         {
             try
             {
-                //TODO Reduce DB requests
                 var user = await _userManager.GetUserAsync(User);
 
                 var userCustomer = await _context.UserCustomer
                     .Include(x => x.Customer)
-                        .ThenInclude(x => x.TitoAccounts)
+                        .ThenInclude(x => x.TitoAccounts)!
                             .ThenInclude(x => x.Events)
                     .FirstOrDefaultAsync(x => x.UserId == user.Id);
 
@@ -238,6 +238,14 @@ namespace CheckIN.Controllers
 
                             if (isEventExist == null)
                             {
+                                var newUserEvent = new UserEvent()
+                                {
+                                    User = user,
+                                    Event = eventEntity
+                                };
+
+                                eventEntity.UserEvents.Add(newUserEvent);
+
                                 await _context.Events.AddAsync(eventEntity);
                             }
                         }
@@ -308,7 +316,7 @@ namespace CheckIN.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var customer = await _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(user?.Id);
+                var customer = _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUser(user?.Id);
                 var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
                 var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
                 ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
@@ -346,13 +354,6 @@ namespace CheckIN.Controllers
                 ticketModel.FullName = ticket.FullName;
                 ticketModel.CompanyName = ticket.CompanyName;
                 ticketModel.JobPosition = ticket.JobTitle;
-                //ticketModel.VCard = ticket.;
-
-                //ticketModel.FirstName = result.FirstName;
-                //ticketModel.LastName = result.LastName;
-                //ticketModel.CompanyName = result.CompanyName;
-                //ticketModel.Tags = result.Tags;
-                //ticketModel.VCard = Convert.ToBase64String(getVCard);
 
                 transferTicketModel = ticketModel;
 
@@ -370,13 +371,37 @@ namespace CheckIN.Controllers
         //TODO Not for here. This endpoint response on scanned ticket
         [HttpPost]
         [Route("TicketScan")]
-        public async Task<IActionResult> TicketScan([FromBody] Object data)
+        public async Task<IActionResult> TicketScan([FromBody] QRCodeDataModel data)
         {
             var ticket = new Ticket();
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var customer = await _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUserAsync(user?.Id);
+
+                var userEvent = _context.UserEvents
+                    .Include(x => x.User)
+                        .ThenInclude(x => x.UserEventTicketPermission)
+                            .ThenInclude(x => x.TicketType)
+                    //.Include(x => x.Event)
+                    //    .ThenInclude(x => x.Tickets)
+                    .FirstOrDefault(x => x.UserId == user.Id);
+
+                if(userEvent == null)
+                {
+                    return BadRequest("Invalid user");
+                }
+
+                var vcard = VCardParse(data.QRCodeData!);
+                var userPermission = userEvent.User.UserEventTicketPermission.FirstOrDefault(x => x.TicketType.Name == vcard.TicketType);
+
+                if (userEvent.User.Permission == Models.Enums.Permission.Owner
+                    || userEvent.User.Permission == Models.Enums.Permission.Administrator
+                    || userPermission != null)
+                {
+
+                }
+
+                    var customer = _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUser(user?.Id);
                 var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
                 var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
                 //ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
@@ -401,7 +426,7 @@ namespace CheckIN.Controllers
             }            
         }
 
-        public string DecodeQRCodeFromBase64(string base64String)
+        private string DecodeQRCodeFromBase64(string base64String)
         {
             // Step 1: Convert the Base64 string to a byte array
             byte[] qrCodeBytes = Convert.FromBase64String(base64String);
@@ -429,21 +454,6 @@ namespace CheckIN.Controllers
                 return img;
             }
         }
-
-        private string ExtractXTypeFromVCard(string vCardData)
-        {
-            // Basic vCard parsing to extract custom field
-            var lines = vCardData.Split('\n');
-            foreach (var line in lines)
-            {
-                if (line.StartsWith("XTYPE:"))
-                {
-                    return line.Substring("XTYPE:".Length).Trim();
-                }
-            }
-            return "XType not found";
-        }
-
 
         [HttpPost]
         [Route("Tickets")]
@@ -578,10 +588,59 @@ namespace CheckIN.Controllers
 
             return Ok();
         }
-    }
 
-    public class QRCodeDataModel
-    {
-        public string? QRCodeData { get; set; }
+        private static VCardParsingModel VCardParse(string vCardData)
+        {
+            var vCard = new VCardParsingModel();
+            var lines = vCardData.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("N:"))
+                {
+                    var parts = line.Substring(2).Split(';');
+                    if (parts.Length >= 2)
+                    {
+                        vCard.LastName = parts[0];
+                        vCard.FirstName = parts[1];
+                    }
+                }
+                else if (line.StartsWith("FN:"))
+                {
+                    vCard.FullName = line.Substring(3);
+                }
+                else if (line.StartsWith("ORG:"))
+                {
+                    vCard.Organization = line.Substring(4);
+                }
+                else if (line.StartsWith("TITLE:"))
+                {
+                    vCard.JobTitle = line.Substring(6);
+                }
+                else if (line.StartsWith("EMAIL:"))
+                {
+                    vCard.Email = line.Substring(6);
+                }
+                else if (line.StartsWith("TicketType:"))
+                {
+                    vCard.TicketType = line.Substring(11);
+                }
+                else
+                {
+                    // Handle unknown fields and store them in AdditionalFields
+                    var separatorIndex = line.IndexOf(':');
+                    if (separatorIndex > 0)
+                    {
+                        var key = line.Substring(0, separatorIndex).Trim();
+                        var value = line.Substring(separatorIndex + 1).Trim();
+                        vCard.AdditionalFields[key] = value;
+                    }
+                }
+            }
+
+            return vCard;
+        }
     }
 }
+
+   

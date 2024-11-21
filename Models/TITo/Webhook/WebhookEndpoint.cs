@@ -1,28 +1,28 @@
-﻿using System.Text.Json.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace CheckIN.Models.TITo.Webhook
 {
-    public class Webhook
+    public class WebhookEndpoint
     {
-        [JsonPropertyName("_type")]
+        [JsonProperty("_type")]
         public string Type { get; set; }
 
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         public int Id { get; set; }
 
-        [JsonPropertyName("status")]
+        [JsonProperty("status")]
         public string Status { get; set; }
 
-        [JsonPropertyName("url")]
+        [JsonProperty("url")]
         public string Url { get; set; }
 
-        [JsonPropertyName("included_triggers")]
+        [JsonProperty("included_triggers")]
         public List<string> IncludedTriggers { get; set; }
 
-        [JsonPropertyName("custom_data")]
+        [JsonProperty("custom_data")]
         public DateTime? CustomData { get; set; }
 
-        [JsonPropertyName("deprecated")]
+        [JsonProperty("deprecated")]
         public bool Deprecated { get; set; }
     }
 }
