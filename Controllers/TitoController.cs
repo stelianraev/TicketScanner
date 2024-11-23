@@ -12,8 +12,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Drawing;
-using ZXing;
 
 namespace CheckIN.Controllers
 {
@@ -29,7 +27,8 @@ namespace CheckIN.Controllers
         private readonly UserManager<User> _userManager;
         private readonly DbService _dbService;
 
-        private static TicketViewModel? transferTicketModel;
+        private static TicketScanViewModel? _ticketScanViewModel;
+        private static TicketViewModel? _transferTicketModel;
 
         public TitoController(UserManager<User> userManager, DbService dbService, IMapper mapper, ITiToService tiToService, ApplicationDbContext context, ILogger<CheckInController> logger)
         {
@@ -304,7 +303,7 @@ namespace CheckIN.Controllers
         [Route("Ticket")]
         public IActionResult Ticket()
         {
-            return View(transferTicketModel);
+            return View(_transferTicketModel);
         }
 
         //TODO Not for here. This endpoint response on scanned ticket
@@ -355,9 +354,9 @@ namespace CheckIN.Controllers
                 ticketModel.CompanyName = ticket.CompanyName;
                 ticketModel.JobPosition = ticket.JobTitle;
 
-                transferTicketModel = ticketModel;
+                _transferTicketModel = ticketModel;
 
-                return this.View(transferTicketModel);
+                return this.View(_transferTicketModel);
 
             }
             catch (Exception ex)
@@ -368,12 +367,20 @@ namespace CheckIN.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("TicketScan")]
+        public IActionResult TicketScan()
+        {
+            return View(_ticketScanViewModel);
+        }
+
         //TODO Not for here. This endpoint response on scanned ticket
         [HttpPost]
         [Route("TicketScan")]
         public async Task<IActionResult> TicketScan([FromBody] QRCodeDataModel data)
         {
-            var ticket = new Ticket();
+            var ticketScanViewModel = new TicketScanViewModel();
+
             try
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -386,72 +393,40 @@ namespace CheckIN.Controllers
                     //    .ThenInclude(x => x.Tickets)
                     .FirstOrDefault(x => x.UserId == user.Id);
 
-                if(userEvent == null)
+                if (userEvent == null)
                 {
                     return BadRequest("Invalid user");
                 }
 
-                var vcard = VCardParse(data.QRCodeData!);
-                var userPermission = userEvent.User.UserEventTicketPermission.FirstOrDefault(x => x.TicketType.Name == vcard.TicketType);
-
-                if (userEvent.User.Permission == Models.Enums.Permission.Owner
-                    || userEvent.User.Permission == Models.Enums.Permission.Administrator
-                    || userPermission != null)
+                var userPermissions = userEvent.User.UserEventTicketPermission.Any();
+                
+                if (!userPermissions)
                 {
+                    ticketScanViewModel.IsUserPermissions = false;
+                    ticketScanViewModel.IsPassing = false;
+                }
+                else
+                {
+                    ticketScanViewModel.IsUserPermissions = true;
 
+                    var vcard = VCardParser(data.QRCodeData!);
+                    var userPermission = userEvent.User.UserEventTicketPermission.FirstOrDefault(x => x.TicketType.Name == vcard.TicketType);
+
+                    if (userEvent.User.Permission == Models.Enums.Permission.Owner
+                        || userEvent.User.Permission == Models.Enums.Permission.Administrator
+                        || userPermission != null)
+                    {
+                        ticketScanViewModel.IsPassing = true;
+                    }
                 }
 
-                    var customer = _dbService.GetTitoAccountsAndEventsAndTicketsCurrentUser(user?.Id);
-                var account = customer?.Customer?.TitoAccounts?.FirstOrDefault(x => x.IsSelected);
-                var selectedEvent = account?.Events.FirstOrDefault(x => x.IsSelected);
-                //ticket = selectedEvent?.Tickets.FirstOrDefault(x => x.Slug == data.QRCodeData);
+                _ticketScanViewModel = ticketScanViewModel;
 
-                //Must Scan QR witch contains VCard and entranceQR information
-                
-                var ticketModel = new TicketViewModel();
-                ticketModel.FullName = ticket.FullName;
-                ticketModel.CompanyName = ticket.CompanyName;
-                ticketModel.JobPosition = ticket.JobTitle;
-                ticketModel.VCard = ticket.QrCodeImage;
-
-                string qrCodeText = DecodeQRCodeFromBase64(ticket.QrCodeImage);
-
-                Console.WriteLine("Decoded text from QR code: " + qrCodeText);
-
-                return null;
+                return View(_ticketScanViewModel);
             }
             catch (Exception ex)
             {
                 return View("Error");
-            }            
-        }
-
-        private string DecodeQRCodeFromBase64(string base64String)
-        {
-            // Step 1: Convert the Base64 string to a byte array
-            byte[] qrCodeBytes = Convert.FromBase64String(base64String);
-
-            // Step 2: Convert the byte array to an Image
-            Image qrCodeImage = ConvertToImage(qrCodeBytes);
-
-            // Step 3: Decode the QR code
-            return DecodeQRCode(qrCodeImage);
-        }
-
-        private string DecodeQRCode(Image qrCodeImage)
-        {
-            Bitmap bitmap = new Bitmap(qrCodeImage);
-            BarcodeReader reader = new BarcodeReader();
-            var result = reader.Decode(bitmap);
-            return result?.Text;
-        }
-
-        private Image ConvertToImage(byte[] byteArray)
-        {
-            using (MemoryStream ms = new MemoryStream(byteArray))
-            {
-                Image img = Image.FromStream(ms);
-                return img;
             }
         }
 
@@ -589,7 +564,7 @@ namespace CheckIN.Controllers
             return Ok();
         }
 
-        private static VCardParsingModel VCardParse(string vCardData)
+        private static VCardParsingModel VCardParser(string vCardData)
         {
             var vCard = new VCardParsingModel();
             var lines = vCardData.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -643,4 +618,4 @@ namespace CheckIN.Controllers
     }
 }
 
-   
+

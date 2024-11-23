@@ -1,0 +1,48 @@
+﻿@model TicketScanViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/ticketscanner.css" type="text/css">
+    <title>Scanner</title>
+</head>
+<body>
+    <section>
+        @if (Model != null)
+        {
+            @if (Model.IsUserPermissions)
+            {
+                @if (Model.IsPassing)
+                {
+                    <section>
+                        <h1>PASSING</h1>
+                        <div class="green-square"></div>
+                    </section>
+                }
+                else
+                {
+                    <section>
+                        <h1>CAN NOT PASS</h1>
+                        <div class="red-square"></div>
+                    </section>
+                }
+            }
+            else
+            {
+                <section>
+                    <h1>YOU HAVE NO PERMISSIONS TO SCAN TICKETS. PLEASE CONTACT ADMINISTRATOR</h1>
+                </section>
+            }
+        }
+        else
+        {
+            <h1>Model is null</h1>
+        }
+
+        <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Scanning", "CheckIn")'">OK</button>
+
+    </section>
+</body>
+</html>
