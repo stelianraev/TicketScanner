@@ -19,7 +19,7 @@ namespace CheckIN.Models.ViewModels
         //[DataType(DataType.Password)]
         //public string ConfirmPassword { get; set; }
 
-        public Permission Permission { get; set; }
+        public List<Permission> Permissions { get; set; }
 
         //EditUser to have all possible ticket types to select permission
         public List<SelectListItem>? TicketTypeList { get; set; }

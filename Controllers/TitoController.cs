@@ -412,8 +412,8 @@ namespace CheckIN.Controllers
                     var vcard = VCardParser(data.QRCodeData!);
                     var userPermission = userEvent.User.UserEventTicketPermission.FirstOrDefault(x => x.TicketType.Name == vcard.TicketType);
 
-                    if (userEvent.User.Permission == Models.Enums.Permission.Owner
-                        || userEvent.User.Permission == Models.Enums.Permission.Administrator
+                    if (userEvent.User.Permissions.Contains(Models.Enums.Permission.Owner)
+                        || userEvent.User.Permissions.Contains(Models.Enums.Permission.Administrator)
                         || userPermission != null)
                     {
                         ticketScanViewModel.IsPassing = true;

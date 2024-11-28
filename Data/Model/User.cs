@@ -5,7 +5,7 @@ namespace CheckIN.Data.Model
 {
     public class User : IdentityUser<Guid>
     {
-        public Permission Permission { get; set; }
+        public List<Permission> Permissions { get; set; } = new List<Permission>();
 
         public virtual ICollection<UserEvent>? UserEvents { get; set; } = new List<UserEvent>();
 

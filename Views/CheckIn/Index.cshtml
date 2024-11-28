@@ -45,16 +45,16 @@
     </section>
     <section class="buttonsSection">
 
-        @if (user.Permission == Permission.Checker || user.Permission == Permission.Administrator || user.Permission == Permission.Owner)
+        @if (user.Permissions.Contains(Permission.Checker) || user.Permissions.Contains(Permission.Administrator) || user.Permissions.Contains(Permission.Owner))
         {
             <button id="checkInButton" class="checkInButton">Check-In</button>
             <button id="registrationsButton" class="registrationsButton">Registrations</button>
         }
-        @if (user.Permission == Permission.Scanner || user.Permission == Permission.Administrator || user.Permission == Permission.Owner)
+        @if (user.Permissions.Contains(Permission.Scanner) || user.Permissions.Contains(Permission.Administrator) || user.Permissions.Contains(Permission.Owner))
         {
             <button id="scanning" class="scanning">Scanning</button>
         }
-        @if (user.Permission == Permission.Owner || user.Permission == Permission.Administrator)
+        @if (user.Permissions.Contains(Permission.Owner) || user.Permissions.Contains(Permission.Administrator))
         {
             <button id="cancel" type="button" class="btn btn-secondary" onclick="window.location.href = '/Admin/AdminDashboard'">Admin Panel</button>
         }

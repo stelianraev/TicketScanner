@@ -73,8 +73,6 @@ namespace CheckIN.Controllers
 
                     if (result.Succeeded)
                     {
-                        //UserCustomerCache? userCustomerCache = null;
-
                         var roles = await _userManager.GetRolesAsync(user);
 
                         if (roles.Contains(Permission.Owner.ToString()))
@@ -107,14 +105,9 @@ namespace CheckIN.Controllers
                                 .Include(x => x.Customer)
                                 .FirstOrDefaultAsync(x => x.UserId.Equals(user.Id));
 
-                            //var userCustomer = await _context.UserCustomer
-                            //    .Include(x => x.User)
-                            //    .Include(x => x.Customer)
-                            //    .FirstOrDefaultAsync(x => x.UserId == user.Id);
-
                             if (userCustomer == null) 
                             {
-                                ModelState.AddModelError("", "The user is not exist");
+                                ModelState.AddModelError("User", "The user is not exist");
                             }
                             else
                             {
@@ -135,16 +128,16 @@ namespace CheckIN.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Invalid username or password.");
+                        ModelState.AddModelError("User", "Invalid username or password.");
                     }
                 }
             }
             catch(Exception ex)
             {
-                //Log Exception
+                //Add log
             }
 
-            return this.View(model);
+            return this.View();
         }
 
         [HttpPost]
@@ -155,27 +148,6 @@ namespace CheckIN.Controllers
 
             return RedirectToAction("Entry", "Account");
         }
-
-        //[HttpGet]
-        //[Authorize(Roles = "Admin, Owner")]
-        //public async Task<IActionResult> UserRegistration()
-        //{
-        //    //var customerId = await GetCurrentCustomerAsync();
-        //    var user = await _userManager.GetUserAsync(User);
-        //    var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
-
-        //    if (userCustomer?.CustomerId == Guid.Empty)
-        //    {
-        //        return Unauthorized();
-        //    }
-
-        //    var model = new UserRegistrationViewModel
-        //    {
-        //        CustomerId = userCustomer.CustomerId
-        //    };
-
-        //    return View(model);
-        //}
 
         [HttpPost]
         [Authorize(Roles = "Admin, Owner")]
@@ -190,8 +162,6 @@ namespace CheckIN.Controllers
             var user = await _userManager.GetUserAsync(User);
 
             // Get the customer details
-            //var userCustomer = await _dbService.GetAllTitoAccountUserEventsAndEventsForCurrentCustomer(user?.Id);
-
             var userQuery = from userCustomer in _context.UserCustomer
                             join titoAccount in _context.TitoAccounts on userCustomer.CustomerId equals titoAccount.CustomerId
                             join eventItem in _context.Events on titoAccount.Id equals eventItem.TitoAccountId
@@ -205,7 +175,7 @@ namespace CheckIN.Controllers
                                 TicketType = ticketType
                             };
 
-            var userCustomerAccounts = await userQuery.FirstOrDefaultAsync(x => x.UserCustomer.UserId == user.Id);
+            var userCustomerAccounts = await userQuery.FirstOrDefaultAsync(x => x.UserCustomer.UserId == user!.Id);
 
             if (userCustomerAccounts?.UserCustomer.CustomerId == Guid.Empty)
             {
@@ -269,7 +239,7 @@ namespace CheckIN.Controllers
             {
                 UserName = userModel.NewUser.Email,
                 Email = userModel.NewUser.Email,
-                Permission = userModel.NewUser.Permission
+                Permissions = userModel.NewUser.Permissions
             };
 
             // Set up the user's ticket permissions for the event
@@ -312,12 +282,15 @@ namespace CheckIN.Controllers
                 selectedEvent!.UserEvents.Add(newUserEvent);
 
                 // Assign the role to the new user
-                if (!await _roleManager.RoleExistsAsync(userModel.NewUser.Permission.ToString()))
+                foreach (var permission in userModel.NewUser.Permissions)
                 {
-                    await _roleManager.CreateAsync(new IdentityRole<Guid> { Name = userModel.NewUser.Permission.ToString() });
-                }
+                    if (!await _roleManager.RoleExistsAsync(permission.ToString()))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole<Guid> { Name = permission.ToString() });
+                    }
 
-                await _userManager.AddToRoleAsync(newUser, userModel.NewUser.Permission.ToString());
+                    await _userManager.AddToRoleAsync(newUser, permission.ToString());
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -364,9 +337,9 @@ namespace CheckIN.Controllers
             {
                 UserName = customer.Email,
                 Email = customer.Email,
-                Permission = Permission.Owner,
                 UserCustomers = new List<UserCustomer>()
             };
+            user.Permissions.Add(Permission.Owner);
 
             var userCustomer = new UserCustomer()
             {
@@ -423,7 +396,7 @@ namespace CheckIN.Controllers
             userViewModel.IsRegistration = false;
             userViewModel.Email = user.User.Email;
             userViewModel.Password = user.User.PasswordHash;
-            userViewModel.Permission = user.User.Permission;
+            userViewModel.Permissions = user.User.Permissions;
             userViewModel.TicketTypesPermission = user.User.UserEventTicketPermission.Select(x => x.TicketType.Name).ToList();
             userViewModel.TicketTypeList = user.Event.TicketTypes.Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = x.Name, Text = x.Name }).ToList();
 
@@ -478,7 +451,7 @@ namespace CheckIN.Controllers
                 : userEvent.User.PasswordHash;
 
             userEvent.User.Email = userModel.Email;
-            userEvent.User.Permission = userModel.Permission;
+            userEvent.User.Permissions = userModel.Permissions;
 
             if (!ModelState.IsValid)
             {

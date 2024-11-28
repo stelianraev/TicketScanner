@@ -9,7 +9,15 @@ namespace CheckIN.Common
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var context = serviceScope.ServiceProvider.GetService<T>();
-                context.Database.Migrate();
+
+                if(context == null)
+                {
+                    //add log
+                }
+                else
+                {
+                    context.Database.Migrate();
+                }
             }
         }
     }

@@ -27,8 +27,8 @@
                 </div>
                 <div class="form-group">
                     <label for="NewUser_Permission">Permission:</label>
-                    <select asp-for="Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
-                    <span asp-validation-for="Permission" class="small text-danger"></span>
+                    <select asp-for="Permissions" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
+                    <span asp-validation-for="Permissions" class="small text-danger"></span>
                 </div>
 
                 <div id="ticketsDiv" class="form-group">
@@ -58,7 +58,7 @@
 
                         <tr>
                             <td>@Model.Email</td>
-                            <td>@Model.Permission</td>
+                            <td>@Model.Permissions</td>
                             <td>@Html.Raw(string.Join("<br>", Model.TicketTypesPermission))</td>
                         </tr>
                     </table>

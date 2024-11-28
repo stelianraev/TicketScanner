@@ -294,7 +294,7 @@ namespace CheckIN.Controllers
                 var tempUsersViewModel = new UserFormModel();
                 tempUsersViewModel.Email = eventUser.User.Email!;
                 tempUsersViewModel.Password = eventUser.User.PasswordHash!;
-                tempUsersViewModel.Permission = eventUser.User.Permission;
+                tempUsersViewModel.Permissions = eventUser.User.Permissions;
                 tempUsersViewModel.Id = eventUser.User.Id;
                 tempUsersViewModel.TicketTypesPermission = eventUser.User.UserEventTicketPermission.Select(x => x.TicketType.Name).ToList();
 

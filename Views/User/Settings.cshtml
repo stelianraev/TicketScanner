@@ -15,7 +15,7 @@
     <title>Settings</title>
 </head>
 <body>
-    @if (user!.Permission == Permission.Administrator)
+    @if (user!.Permissions.Contains(Permission.Administrator))
     {
      <aside class="adminBar">
          <a href="/Admin/AdminSettings">Settings</a>

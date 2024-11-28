@@ -37,15 +37,20 @@
                         <span asp-validation-for="NewUser.Password" class="small text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label for="NewUser_Permission">Permission:</label>
-                        <select id="permissionDropdown" asp-for="NewUser.Permission" asp-items="Html.GetEnumSelectList<Permission>().Skip(1)" class="form-control"></select>
-                        <span asp-validation-for="NewUser.Permission" class="small text-danger"></span>
+                        <label for="NewUser_Permissions">Permission:</label>
+                        @foreach (var permission in Enum.GetValues(typeof(Permission)).Cast<Permission>().Skip(1))
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="permission_@permission"
+                                       name="NewUser.Permissions" value="@permission"
+                                @(Model.NewUser.Permissions != null && Model.NewUser.Permissions.Contains(permission) ? "checked" : "") />
+                                <label class="form-check-label" for="permission_@permission">
+                                    @permission
+                                </label>
+                            </div>
+                        }
+                        <span asp-validation-for="NewUser.Permissions" class="small text-danger"></span>
                     </div>
-                    @* <div id="ticketsDiv" class="form-group" style="display: none;">
-                    <label for="NewUser_TicketType">Ticket Type:</label>
-                    <select id="permissionDropdown" asp-for="NewUser.TicketTypeList" asp-items="Model.TicketTypeList" class="form-control" multiple="multiple"></select>
-                    <span asp-validation-for="NewUser.TicketTypeList" class="small text-danger"></span>
-                    </div> *@
 
                     <div id="ticketsDiv" class="form-group">
                         <label for="NewUser_TicketType">Ticket Type:</label>
@@ -62,8 +67,6 @@
                         }
                         <span asp-validation-for="NewUser.SelectedTicketTypesPermission" class="small text-danger"></span>
                     </div>
-
-
                 </section>
 
                 <button id="save" type="submit">Add User</button>
@@ -71,73 +74,67 @@
 
             <div class="table-container">
                 <table>
-                    @{
-                        @if (Model.Users.Any())
+                    @if (Model.Users.Any())
+                    {
+                        <tr>
+                            <th>Email</th>
+                            <th>Permission</th>
+                            <th>Tickets Permissions</th>
+                            <th>Edit</th>
+                        </tr>
+
+                        @foreach (UserFormModel user in Model.Users)
                         {
                             <tr>
-                                <th>Email</th>
-                                <th>Permission</th>
-                                <th>Tickets Permissions</th>
-                                <th>Edit</th>
+                                <td>@user.Email</td>
+                                <td>@Html.Raw(string.Join("<br>", user.Permissions))</td>
+                                <td>@Html.Raw(string.Join("<br>", user.TicketTypesPermission))</td>
+                                <td>
+                                    <a asp-action="EditUser" asp-controller="Account" asp-route-id="@user.Id" class="btn btn-primary">Edit</a>
+                                </td>
                             </tr>
-
-                            foreach (UserFormModel user in Model.Users)
-                            {
-                                <tr>
-                                    <td>@user.Email</td>
-                                    <td>@user.Permission</td>
-                                    <td>@Html.Raw(string.Join("<br>", user.TicketTypesPermission))</td>
-                                    <td>
-                                        <a asp-action="EditUser" asp-controller="Account" asp-route-id="@user.Id" class="btn btn-primary">Edit</a>
-                                    </td>
-                                </tr>
-                            }
                         }
-                        else
-                        {
-                            <p>No Users</p>
-                        }
+                    }
+                    else
+                    {
+                        <p>No Users</p>
                     }
                 </table>
             </div>
         </section>
-        @* <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var permissionDropdown = document.getElementById('permissionDropdown');
-                var ticketsDiv = document.getElementById('ticketsDiv');
 
-                permissionDropdown.addEventListener('change', function () {
-                    if (permissionDropdown.value == 4) {
-                        ticketsDiv.style.display = 'block';
-                    } else {
-                        ticketsDiv.style.display = 'none';
-                    }
-                });
-            });
-        </script> *@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                var permissionDropdown = document.getElementById('permissionDropdown'); // Select the permission dropdown
-                var ticketsDiv = document.getElementById('ticketsDiv'); // Select the ticket checkboxes div
+                var adminCheckbox = document.getElementById('permission_Administrator');
+                var checkerCheckbox = document.getElementById('permission_Checker');
+                var scannerCheckbox = document.getElementById('permission_Scanner');
 
-                // Initially hide or show the ticketsDiv based on the selected value
-                if (permissionDropdown.value == 4) {
-                    ticketsDiv.style.display = 'block';
-                } else {
-                    ticketsDiv.style.display = 'none';
+                function enforceSelectionRules() {
+                    if (adminCheckbox.checked) {
+                        checkerCheckbox.checked = false;
+                        scannerCheckbox.checked = false;
+                        checkerCheckbox.disabled = true;
+                        scannerCheckbox.disabled = true;
+                    } else {
+                        checkerCheckbox.disabled = false;
+                        scannerCheckbox.disabled = false;
+                    }
+
+                    if (checkerCheckbox.checked || scannerCheckbox.checked) {
+                        adminCheckbox.checked = false;
+                        adminCheckbox.disabled = true;
+                    } else {
+                        adminCheckbox.disabled = false;
+                    }
                 }
 
-                // Add event listener to permissionDropdown to handle changes
-                permissionDropdown.addEventListener('change', function () {
-                    if (permissionDropdown.value == 4) { // Assuming '4' is the value that requires ticket checkboxes
-                        ticketsDiv.style.display = 'block'; // Show the ticket checkboxes
-                    } else {
-                        ticketsDiv.style.display = 'none'; // Hide the ticket checkboxes
-                    }
-                });
+                adminCheckbox.addEventListener('change', enforceSelectionRules);
+                checkerCheckbox.addEventListener('change', enforceSelectionRules);
+                scannerCheckbox.addEventListener('change', enforceSelectionRules);
+
+                enforceSelectionRules(); // Initial call to set the correct state
             });
         </script>
-
     </section>
 </body>
 </html>

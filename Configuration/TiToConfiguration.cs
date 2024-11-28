@@ -2,8 +2,8 @@
 {
     public class TiToConfiguration
     {
-        public string BaseUrl { get; set; }
-        public string VCardURL {  get; set; }
-        public string Token { get; set; }
+        public string BaseUrl { get; set; } = null!;
+        public string VCardURL {  get; set; } = null!;
+        public string Token { get; set; } = null!;
     }
 }
